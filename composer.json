@@ -1,0 +1,22 @@
+{
+    "name": "jinxes/layton",
+    "description": "The Layton PHP framework",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jinxes",
+            "email": "blldxt@yahoo.com"
+        }
+    ],
+    "require": {
+        "psr/container": "^1.0",
+        "psr/http-message": "^1.0",
+        "psr/cache": "^1.0",
+        "psr/link": "^1.0",
+        "psr/http-server-handler": "^1.0",
+        "psr/http-server-middleware": "^1.0",
+        "psr/log": "^1.0",
+        "phpunit/phpunit": "^6.5"
+    }
+}
