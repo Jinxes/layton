@@ -3,15 +3,41 @@ namespace Layton;
 
 class Route
 {
+    protected static $storage = [];
+
     public $method;
 
-    public function __construct($method)
+    public $callback;
+    
+    public $name;
+
+    public $middleWare = [];
+
+    /**
+     * @param string $method
+     * @param callback $callback
+     */
+    public function __construct(string $method, $callback)
     {
         $this->method = $method;
+        $this->callback = $callback;
+    }
+    
+    /**
+     * @param string $name
+     */
+    public function name(string $name)
+    {
+        $this->name = $name;
+        return $this;
     }
 
-    public function __get($name)
+    /**
+     * @param array $middleWare
+     */
+    public function middleWare(array $middleWare)
     {
-        return ucwords($name) . 'Controller' . ':'. $this->method;
+        $this->middleWare = $middleWare;
+        return $this;
     }
 }

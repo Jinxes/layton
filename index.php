@@ -7,27 +7,17 @@ spl_autoload_register(function($class) {
 });
 
 use Layton\App;
+use Layton\RouteService;
 
-class Abc
-{
-    public $counter = 0;
-
-    public function add()
-    {
-        $this->counter++;
-    }
-
-    public function get()
-    {
-        return $this->counter;
-    }
-}
 
 $app = new App();
-$app->container->abc = 'abc';
-echo $app->container->abc;
-echo $app->container->abc;
-echo $app->container->abc;
-// $app->container->clear();
-echo $app->container->abc;
-$app->container->clear();
+
+$app->get('/user/:num', function($layton) {
+    return 'hello user';
+})->name('user');
+
+$app->get('/admin', function($layton) {
+    return $layton->test;
+})->name('user');
+
+print_r($app->response());

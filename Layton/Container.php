@@ -4,13 +4,14 @@ namespace Layton;
 use Psr\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Layton\Exception\NotFoundException;
+use Layton\Exception\StoreReattachException;
 use Layton\Exception\UnknownIdentifierException;
 
 
 class Container implements ContainerInterface, \ArrayAccess
 {
-    protected $_store;
-    protected $_frozen;
+    public $_store;
+    public $_frozen;
 
     public function __construct(array $entrys = [])
     {
@@ -50,29 +51,6 @@ class Container implements ContainerInterface, \ArrayAccess
     public function has($id)
     {
         return $this->offsetExists($id);
-    }
-
-    /**
-     * Assign a value to the specified entry id.
-     * 
-     * @param string|integer $offset Entry id
-     * @param mixed $value Entry
-     * 
-     * @throws ContainerExceptionInterface When entry is exists.
-     */
-    public function attach($offset, $value)
-    {
-        $this->offsetSet($offset, $value);
-    }
-
-    /**
-     * Unset an Entry
-     * 
-     * @param string|integer $offset Entry id
-     */
-    public function detach($offset)
-    {
-        $this->offsetUnset($offset);
     }
 
     /**
@@ -120,12 +98,12 @@ class Container implements ContainerInterface, \ArrayAccess
      * @param string|integer $offset Entry id
      * @param mixed $value Entry
      * 
-     * @throws ContainerExceptionInterface When entry is exists.
+     * @throws StoreReattachException When entry is exists.
      */
     public function offsetSet($offset, $value)
     {
         if ($this->has($offset)) {
-            throw new ContainerExceptionInterface('The entry is exists.');
+            throw new StoreReattachException('The entry is exists.');
         }
 
         $this->_store[$offset] = $value;
