@@ -57,7 +57,8 @@ class App
         $storage = $this->routeService->getStorage();
         foreach ($storage as $match => $route) {
             if ($this->matchHttpRequest($match) !== false) {
-                print_r($this->getMiddleWareFromRoute($route));
+                $middleWares = $this->getMiddleWareFromRoute($route);
+                print_r($middleWares);
                 return \call_user_func_array($route->callback, [$this]);
             }
         }
