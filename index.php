@@ -7,17 +7,22 @@ spl_autoload_register(function($class) {
 });
 
 use Layton\App;
-use Layton\RouteService;
 
 
 $app = new App();
 
-$app->get('/user/:num', function($layton) {
-    return 'hello user';
-})->name('user');
+$app->group('/api', function($group) {
+    $group->get('/user/:num', function($layton) {
+        return 'hello user';
+    })->name('user')->middleWare([4,5])->middleWare([6,7]);
+})->middleWare([1,2,3]);
+
+// $app->get('/user/:num', function($layton) {
+//     return 'hello user';
+// })->name('user');
 
 $app->get('/admin', function($layton) {
-    return $layton->test;
+    return 'hello admin';
 })->name('user');
 
 print_r($app->response());

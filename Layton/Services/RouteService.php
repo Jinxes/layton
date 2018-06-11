@@ -1,5 +1,7 @@
 <?php
-namespace Layton;
+namespace Layton\Services;
+
+use Layton\Route;
 
 class RouteService
 {

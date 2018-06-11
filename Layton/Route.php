@@ -1,8 +1,13 @@
 <?php
 namespace Layton;
 
-class Route
+use Layton\Interfaces\RouteConfigureInterface;
+use Layton\Traits\MiddleWareOptionTrait;
+
+class Route implements RouteConfigureInterface
 {
+    use MiddleWareOptionTrait;
+
     protected static $storage = [];
 
     public $method;
@@ -12,6 +17,8 @@ class Route
     public $name;
 
     public $middleWare = [];
+
+    public $group = false;
 
     /**
      * @param string $method
@@ -33,11 +40,11 @@ class Route
     }
 
     /**
-     * @param array $middleWare
+     * @param RouteGroup $group
      */
-    public function middleWare(array $middleWare)
+    public function setGroup(RouteGroup $group)
     {
-        $this->middleWare = $middleWare;
+        $this->group = $group;
         return $this;
     }
 }

@@ -2,18 +2,20 @@
 namespace Layton;
 
 use Layton\Exception\NotFoundException;
+use Layton\Traits\RouteMapingTrait;
+use Layton\Services\RouteService;
 
 /**
  * @access public 
  * @property Container $container
- * @property RouteService $routeService
+ * @property \Layton\Services\RouteService $routeService
  */
 class App
 {
+    use RouteMapingTrait;
+
     public $container;
     public $routeService;
-
-    public $test = '123123';
 
     public function __construct()
     {
@@ -25,15 +27,24 @@ class App
     }
 
     /**
-     * Regist a GET http route.
+     * Regist a HEAD http route.
+     * 
+     * @param string $method
      * @param string $match
      * @param callback $callable
      * 
      * @return Route
      */
-    public function get($match, $callback)
+    public function map($method, $match, $callback)
     {
-        return $this->routeService->attach(RouteService::METHOD_GET, $match, $callback);
+        return $this->routeService->attach($method, $match, $callback);
+    }
+
+    public function group($match, $callback)
+    {
+        $group = new RouteGroup($this->container, $match);
+        $callback($group);
+        return $group;
     }
 
     /**
@@ -46,11 +57,27 @@ class App
         $storage = $this->routeService->getStorage();
         foreach ($storage as $match => $route) {
             if ($this->matchHttpRequest($match) !== false) {
+                print_r($this->getMiddleWareFromRoute($route));
                 return \call_user_func_array($route->callback, [$this]);
             }
         }
-
         throw new NotFoundException();
+    }
+
+    /**
+     * Get middle ware from Route
+     * 
+     * @param Route $route
+     * 
+     * @return array
+     */
+    private function getMiddleWareFromRoute(Route $route)
+    {
+        $groupMiddleWare = $route->group->middleWare;
+        if ($groupMiddleWare) {
+            return \array_merge($groupMiddleWare, $route->middleWare);
+        }
+        return $route->middleWare;
     }
 
     /**
