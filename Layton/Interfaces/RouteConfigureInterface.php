@@ -1,10 +1,10 @@
 <?php
 namespace Layton\Interfaces;
 
+use Psr\Container\ContainerInterface;
+
 
 interface RouteConfigureInterface
 {
     public function name(string $name);
-
-    public function middleWare(array $middleWare);
 }

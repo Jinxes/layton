@@ -10,6 +10,8 @@ class Route implements RouteConfigureInterface
 
     protected static $storage = [];
 
+    protected $container;
+
     public $method;
 
     public $callback;
@@ -18,7 +20,7 @@ class Route implements RouteConfigureInterface
 
     public $middleWare = [];
 
-    public $group = false;
+    public $group = null;
 
     /**
      * @param string $method

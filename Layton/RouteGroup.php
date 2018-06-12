@@ -7,12 +7,13 @@ use Layton\Traits\MiddleWareOptionTrait;
 
 class RouteGroup implements RouteConfigureInterface
 {
-    use RouteMapingTrait;
-    use MiddleWareOptionTrait;
+    use RouteMapingTrait,
+        MiddleWareOptionTrait;
 
     public $base = '';
     public $name;
     public $middleWare = [];
+    public $parentGroup = null;
 
     public function __construct($container, $base)
     {
@@ -22,7 +23,7 @@ class RouteGroup implements RouteConfigureInterface
     }
 
     /**
-     * Regist a HEAD http route.
+     * Regist a http route.
      * 
      * @param string $method
      * @param string $match
@@ -38,6 +39,17 @@ class RouteGroup implements RouteConfigureInterface
             ->attach($method, $match, $callback)
             ->setGroup($this);
         return $route;
+    }
+
+    public function group($match, $callback)
+    {
+        $match = $this->base . $match;
+        $group = new static($this->container, $match);
+
+        $group->parentGroup = $this;
+        $callback($group);
+
+        return $group;
     }
 
     /**

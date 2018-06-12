@@ -4,6 +4,7 @@ namespace Layton;
 use Layton\Exception\NotFoundException;
 use Layton\Traits\RouteMapingTrait;
 use Layton\Services\RouteService;
+use Layton\Struct\AcceptStruct;
 
 /**
  * @access public 
@@ -50,19 +51,27 @@ class App
     /**
      * Match routers and call the callback.
      * 
-     * @return array|string|Response
+     * @throws NotFoundException
+     * 
+     * @return AcceptStruct|false
      */
-    public function response()
+    public function accept()
     {
         $storage = $this->routeService->getStorage();
         foreach ($storage as $match => $route) {
-            if ($this->matchHttpRequest($match) !== false) {
+            $matched = $this->matchHttpRequest($match);
+            if ($matched !== false) {
                 $middleWares = $this->getMiddleWareFromRoute($route);
-                print_r($middleWares);
-                return \call_user_func_array($route->callback, [$this]);
+                if (\is_string($route->callback)) {
+                    if (strpos($route->callback, '::') !== false) {
+                        list($controller, $method) = explode('::', $route->callback);
+                        return new AcceptStruct($controller, $method, $matched, $middleWares);
+                    }
+                }
+                return new AcceptStruct($route->callback, '__invoke', $matched, $middleWares);
             }
         }
-        throw new NotFoundException();
+        return false;
     }
 
     /**
@@ -74,11 +83,30 @@ class App
      */
     private function getMiddleWareFromRoute(Route $route)
     {
-        $groupMiddleWare = $route->group->middleWare;
-        if ($groupMiddleWare) {
-            return \array_merge($groupMiddleWare, $route->middleWare);
+        if (!$route->group) {
+            return $route->middleWare;
         }
-        return $route->middleWare;
+        $groupMiddleWare = $this->getMiddleWareFromGroup($route->group);
+        return \array_merge($groupMiddleWare, $route->middleWare);
+    }
+
+    /**
+     * Merge all middlewares from group and parent-group.
+     * 
+     * @param RouteGroup $group The first route group.
+     * @param array $middleWareList Swap of middlewares.
+     * 
+     * @return array All middlewares.
+     */
+    private function getMiddleWareFromGroup(RouteGroup $group, array $middleWareList = [])
+    {
+        if ($group->middleWare) {
+            $middleWareList = \array_merge($group->middleWare, $middleWareList);
+        }
+        if (\is_null($group->parentGroup)) {
+            return $middleWareList;
+        }
+        return $this->getMiddleWareFromGroup($group->parentGroup, $middleWareList);
     }
 
     /**
