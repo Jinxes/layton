@@ -20,9 +20,6 @@ class Accept
     public function send()
     {
         $acceptStruct = $this->getAcceptStruct();
-        if ($acceptStruct === false) {
-            throw new NotFoundException();
-        }
 
         if ($this->connectMiddleWare($acceptStruct->middleWares)) {
             if (\method_exists($acceptStruct->controller, '__invoke')) {
@@ -36,6 +33,18 @@ class Accept
     }
 
     /**
+     * Send a HTTP Response.
+     * 
+     * @param Response $response
+     * 
+     * @return mixed
+     */
+    public function httpAccept(Response $response)
+    {
+        // return $response->
+    }
+
+    /**
      * Run all middleware if failed return false.
      * 
      * @param array $middleWares
@@ -43,8 +52,8 @@ class Accept
     public function connectMiddleWare($middleWares)
     {
         foreach ($middleWares as $middleWare) {
-            $ware = new $middleWare($this->app);
-            $result = $ware();
+            $currentMiddleWare = new $middleWare($this->app);
+            $result = $currentMiddleWare();
             if ($result instanceof Response) {
                 // TODO: call response sender
                 return false;

@@ -35,7 +35,7 @@ class Ctrl
 
 $app = new App();
 
-$app->get('/api/user', Ctrl::class . '::test')->middleWare(Midtest::class, Midtest2::class);
+$app->post('/api/user', Ctrl::class . '::test')->middleWare(Midtest::class, Midtest2::class);
 
 
 (new Accept($app))->send();

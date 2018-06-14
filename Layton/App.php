@@ -2,6 +2,7 @@
 namespace Layton;
 
 use Layton\Exception\NotFoundException;
+use Layton\Exception\MethodNotAllowedException;
 use Layton\Traits\RouteMapingTrait;
 use Layton\Services\RouteService;
 use Layton\Struct\AcceptStruct;
@@ -52,8 +53,9 @@ class App
      * Match routers and call the callback.
      * 
      * @throws NotFoundException
+     * @throws MethodNotAllowedException
      * 
-     * @return AcceptStruct|false
+     * @return AcceptStruct
      */
     public function accept()
     {
@@ -61,6 +63,10 @@ class App
         foreach ($storage as $match => $route) {
             $matched = $this->matchHttpRequest($match);
             if ($matched !== false) {
+                if ($route->method !== $_SERVER['REQUEST_METHOD']) {
+                    throw new MethodNotAllowedException();
+                }
+
                 $middleWares = $this->getMiddleWareFromRoute($route);
                 if (\is_string($route->callback)) {
                     if (strpos($route->callback, '::') !== false) {
@@ -68,10 +74,12 @@ class App
                         return new AcceptStruct($controller, $method, $matched, $middleWares);
                     }
                 }
+
                 return new AcceptStruct($route->callback, '__invoke', $matched, $middleWares);
             }
         }
-        return false;
+
+        throw new NotFoundException();
     }
 
     /**
