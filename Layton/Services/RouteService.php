@@ -3,7 +3,7 @@ namespace Layton\Services;
 
 use Layton\Route;
 
-class RouteService
+class RouteService extends LaytonService
 {
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
@@ -15,15 +15,12 @@ class RouteService
     /** @var array $storage */
     protected $storage;
 
-    /** @var Container $container */
-    protected $container;
-
     /**
      * @param Container $container
      */
     public function __construct($container)
     {
-        $this->container = $container;
+        parent::__construct($container);
         $this->storage = [];
     }
 

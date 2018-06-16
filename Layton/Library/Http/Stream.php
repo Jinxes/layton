@@ -376,8 +376,6 @@ class Stream implements StreamInterface
         if (!$this->isWritable() || ($written = fwrite($this->stream, $string)) === false) {
             throw new \RuntimeException('Could not write to stream');
         }
-
-        // reset size so that it will be recalculated on next call to getSize()
         $this->size = null;
 
         return $written;
@@ -388,13 +386,13 @@ class Stream implements StreamInterface
      *
      * @return string
      *
-     * @throws RuntimeException if unable to read or an error occurs while
+     * @throws \RuntimeException if unable to read or an error occurs while
      *     reading.
      */
     public function getContents()
     {
         if (!$this->isReadable() || ($contents = stream_get_contents($this->stream)) === false) {
-            throw new RuntimeException('Could not get contents of stream');
+            throw new \RuntimeException('Could not get contents of stream');
         }
 
         return $contents;

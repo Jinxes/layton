@@ -63,7 +63,7 @@ class Container implements ContainerInterface, \ArrayAccess
      */
     public function offsetExists($offset)
     {
-        return isset($this->_store[$offset]);
+        return array_key_exists($offset, $this->_store);
     }
 
     /**
@@ -82,11 +82,11 @@ class Container implements ContainerInterface, \ArrayAccess
         }
 
         if (!isset($this->_frozen[$offset])) {
-            $entry = $this->_store[$offset];
+            $entry = &$this->_store[$offset];
             if (\method_exists($entry, '__invoke')) {
                 $entry = $entry($this);
             }
-            $this->_frozen[$offset] = $entry;
+            $this->_frozen[$offset] = &$entry;
         }
 
         return $this->_frozen[$offset];
@@ -149,6 +149,14 @@ class Container implements ContainerInterface, \ArrayAccess
     }
 
     /**
+     * Count store
+     */
+    public function count()
+    {
+        return count($this->_store);
+    }
+
+    /**
      * @param string|integer $id
      * 
      * @throws UnknownIdentifierException  No entry was found for **this** identifier.
@@ -171,5 +179,15 @@ class Container implements ContainerInterface, \ArrayAccess
     public function __set($id, $callable)
     {
         $this->offsetSet($id, $callable);
+    }
+
+    /**
+     * @param  string $key
+     *
+     * @return string dependent normalized key.
+     */
+    public function normalizeKey($key)
+    {
+        return lcfirst($key);
     }
 }

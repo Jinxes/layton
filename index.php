@@ -7,18 +7,27 @@ spl_autoload_register(function($class) {
 
 use Layton\App;
 use Layton\Accept;
+use Layton\Library\Http\Response;
+
+class Test1
+{
+    public function test()
+    {
+        
+    }
+}
 
 class Midtest
 {
-    public function __invoke()
+    public function main(Test1 $test, $args)
     {
-        // return new \Layton\Library\Http\Response();
+        $test->test();
     }
 }
 
 class Midtest2
 {
-    public function __invoke()
+    public function main($args)
     {
         return false;
     }
@@ -26,16 +35,19 @@ class Midtest2
 
 class Ctrl
 {
-    public function test()
+    public function test(Response $response, $arg)
     {
-        echo 'test';
+        return $response->withBody('asd');
     }
 }
 
 
 $app = new App();
 
-$app->post('/api/user', Ctrl::class . '::test')->middleWare(Midtest::class, Midtest2::class);
+$app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest::class, Midtest2::class);
 
+$app->get('/api/admin', function (Response $response) {
+    return $response->withBody('admin');
+});
 
 (new Accept($app))->send();

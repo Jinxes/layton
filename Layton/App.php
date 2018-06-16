@@ -6,6 +6,7 @@ use Layton\Exception\MethodNotAllowedException;
 use Layton\Traits\RouteMapingTrait;
 use Layton\Services\RouteService;
 use Layton\Struct\AcceptStruct;
+use Layton\Services\DependentService;
 
 /**
  * @access public 
@@ -18,13 +19,22 @@ class App
 
     public $container;
     public $routeService;
+    public $routeMethodSep = '>';
 
     public function __construct()
     {
         $this->container = new Container();
+
         $this->container->routeService = function($c) {
             return new RouteService($c);
         };
+
+        $this->container->dependent_store = new Container();
+
+        $this->container->dependentService = function($c) {
+            return new DependentService($c);
+        };
+
         $this->routeService = $this->container->routeService;
     }
 
@@ -69,8 +79,8 @@ class App
 
                 $middleWares = $this->getMiddleWareFromRoute($route);
                 if (\is_string($route->callback)) {
-                    if (strpos($route->callback, '::') !== false) {
-                        list($controller, $method) = explode('::', $route->callback);
+                    if (strpos($route->callback, $this->routeMethodSep) !== false) {
+                        list($controller, $method) = explode($this->routeMethodSep, $route->callback);
                         return new AcceptStruct($controller, $method, $matched, $middleWares);
                     }
                 }
