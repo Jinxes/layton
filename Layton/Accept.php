@@ -32,7 +32,10 @@ class Accept
         if ($this->connectMiddleWare($acceptStruct->middleWares, $acceptStruct->args)) {
             if (\method_exists($acceptStruct->controller, '__invoke')) {
                 // return \call_user_func_array($acceptStruct->controller, [$this->app]);
-                $response = $this->dependentService->call($acceptStruct->controller);
+                $response = $this->dependentService->call(
+                    $acceptStruct->controller,
+                    $acceptStruct->args
+                );
             } else {
                 $response = $this->dependentService
                 ->new($acceptStruct->controller)

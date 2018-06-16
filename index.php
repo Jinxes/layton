@@ -46,7 +46,7 @@ $app = new App();
 
 $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest::class, Midtest2::class);
 
-$app->get('/api/admin', function (Response $response) {
+$app->get('/api/admin/:num', function (Response $response, $str) {
     return $response->withBody('admin');
 });
 
