@@ -20,7 +20,7 @@ class DependentService extends LaytonService
      * 
      * @return DependentStruct
      */
-    public function new($className)
+    public function newClass($className)
     {
         if ($this->dependent_store->has($className)) {
             return $this->dependent_store[$className];
@@ -77,7 +77,7 @@ class DependentService extends LaytonService
         if (array_key_exists($className, $this->dependent_store)) {
             return $this->dependent_store[$className];
         }
-        return $this->new($className);
+        return $this->newClass($className);
     }
 
     /**

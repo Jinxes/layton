@@ -93,7 +93,7 @@ class Response extends HttpMessage
      *
      * @final
      */
-    public function getCharset(): ?string
+    public function getCharset()
     {
         return $this->charset;
     }
@@ -105,7 +105,7 @@ class Response extends HttpMessage
      *
      * @final
      */
-    public function setCharset(string $charset)
+    public function setCharset($charset)
     {
         $this->charset = $charset;
         return $this;

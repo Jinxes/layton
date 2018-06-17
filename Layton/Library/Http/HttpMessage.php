@@ -4,7 +4,7 @@ namespace Layton\Library\Http;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\StreamInterface;
 
-class HttpMessage implements MessageInterface
+class HttpMessage
 {
     const HTTP_CONTINUE = 100;
     const HTTP_SWITCHING_PROTOCOLS = 101;

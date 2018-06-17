@@ -36,7 +36,7 @@ class Accept
         $next = $this->nextFactory(function() {
             array_shift($this->acceptStruct->args);
             return $this->dependentService
-                ->new($this->acceptStruct->controller)
+                ->newClass($this->acceptStruct->controller)
                 ->injection(
                     $this->acceptStruct->method,
                     $this->acceptStruct->args
@@ -44,7 +44,7 @@ class Accept
         });
 
         array_unshift($this->acceptStruct->args, $next);
-        $response = $this->dependentService->new($this->middleWares->current())
+        $response = $this->dependentService->newClass($this->middleWares->current())
             ->injection('handle', $this->acceptStruct->args);
 
         if ($response instanceof Response) {
@@ -63,7 +63,7 @@ class Accept
             $this->middleWares->next();
             if ($this->middleWares->valid()) {
                 $response = $this->dependentService
-                    ->new($this->middleWares->current())
+                    ->newClass($this->middleWares->current())
                     ->injection('handle', $this->acceptStruct->args);
             } else {
                 $response = $callback();
@@ -101,7 +101,7 @@ class Accept
      *
      * @final
      */
-    public static function closeOutputBuffers(int $targetLevel, bool $flush)
+    public static function closeOutputBuffers($targetLevel, $flush)
     {
         $status = ob_get_status(true);
         $level = count($status);
@@ -136,7 +136,7 @@ class Accept
     {
         $dependentService = $this->app->container->dependentService;
         foreach ($middleWares as $middleWare) {
-            $result = $dependentService->new($middleWare)->injection('main', $args);
+            $result = $dependentService->newClass($middleWare)->injection('main', $args);
             if ($result instanceof Response) {
                 $this->sendByResponse($result);
                 return false;

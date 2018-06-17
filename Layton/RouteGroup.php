@@ -55,7 +55,7 @@ class RouteGroup implements RouteConfigureInterface
     /**
      * @param string $name
      */
-    public function name(string $name)
+    public function name($name)
     {
         $this->name = $name;
         return $this;
