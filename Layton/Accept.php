@@ -39,7 +39,7 @@ class Accept
             } else {
                 $response = $this->dependentService
                 ->new($acceptStruct->controller)
-                ->reverse(
+                ->injection(
                     $acceptStruct->method,
                     $acceptStruct->args
                 );
@@ -111,7 +111,7 @@ class Accept
     {
         // $dependentService = $this->app->container->dependentService;
         foreach ($middleWares as $middleWare) {
-            $result = $this->app->container->dependentService->new($middleWare)->reverse('main', $args);
+            $result = $this->app->container->dependentService->new($middleWare)->injection('main', $args);
             if ($result instanceof Response) {
                 $this->sendByResponse($result);
                 return false;

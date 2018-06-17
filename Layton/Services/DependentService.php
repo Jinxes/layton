@@ -3,6 +3,7 @@ namespace Layton\Services;
 
 use ReflectionClass;
 use ReflectionFunction;
+use ReflectionParameter;
 use Layton\Container;
 use Layton\Struct\DependentStruct;
 
@@ -11,6 +12,7 @@ class DependentService extends LaytonService
     public function __construct($container)
     {
         parent::__construct($container);
+        $this->dependent_store = $this->container->dependent_store;
     }
 
     /**
@@ -18,14 +20,14 @@ class DependentService extends LaytonService
      * 
      * @return DependentStruct
      */
-    public function new($class)
+    public function new($className)
     {
-        if ($this->container->dependent_store->has($class)) {
-            return $this->container->dependent_store[$class];
+        if ($this->dependent_store->has($className)) {
+            return $this->dependent_store[$className];
         }
 
-        $dependentStruct = new DependentStruct($this->container, $class);
-        $this->container->dependent_store[$class] = $dependentStruct;
+        $dependentStruct = new DependentStruct($this->container, $className);
+        $this->dependent_store[$className] = $dependentStruct;
         return $dependentStruct;
     }
 
@@ -39,37 +41,43 @@ class DependentService extends LaytonService
      */
     public function call($subject, $inherentParams = [])
     {
-        $reflection = new ReflectionFunction($subject);
-        $reflectionInstances = $this->getReflectionInstances($reflection, count($inherentParams));
-        $instanceArray = [];
-        foreach($reflectionInstances as $instance) {
-            $instanceArray[] = $this->getAndRegistReflection($instance)->getInstance();
+        $reflectionFunction = new ReflectionFunction($subject);
+        $reflectionParameters = $this->getReflectionParameters(
+            $reflectionFunction,
+            count($inherentParams)
+        );
+
+        $dependentInstances = [];
+        foreach($reflectionParameters as $reflectionParameter) {
+            $dependentInstances[] = $this->getDependentByParameter($reflectionParameter)
+                ->getInstance();
         }
-        $params = array_merge($instanceArray, $inherentParams);
-        return $reflection->invokeArgs($params);
+        $params = array_merge($dependentInstances, $inherentParams);
+
+        return $reflectionFunction->invokeArgs($params);
     }
 
     /**
      * instantiation params
      * 
-     * @param string
+     * @param ReflectionParameter $paramType
      * 
-     * @return mixed
+     * @return object
      * 
      * @throw \BadMethodCallException
      */
-    public function getAndRegistReflection($paramType)
+    public function getDependentByParameter(ReflectionParameter $reflectionParameter)
     {
-        $_objectClass = $paramType->getClass();
-        if (is_null($_objectClass)) {
+        $reflectionClass = $reflectionParameter->getClass();
+        if (is_null($reflectionClass)) {
             throw new \BadMethodCallException('The method parameters not exists.');
         }
-        $class = $_objectClass->getName();
+        $className = $reflectionClass->getName();
 
-        if (array_key_exists($class, $this->container->dependent_store)) {
-            return $this->container->dependent_store[$class];
+        if (array_key_exists($className, $this->dependent_store)) {
+            return $this->dependent_store[$className];
         }
-        return $this->new($class);
+        return $this->new($className);
     }
 
     /**
@@ -78,11 +86,11 @@ class DependentService extends LaytonService
      * @param \Reflector $reflection
      * @param num $inherentNumber
      * 
-     * @return array
+     * @return ReflectionParameter[]
      */
-    public function getReflectionInstances($reflection, $inherentNumber)
+    public function getReflectionParameters($reflection, $inherentNumber)
     {
-        $paramTypes = $reflection->getParameters();
-        return array_slice($paramTypes, 0, count($paramTypes) - $inherentNumber);
+        $reflectionParameters = $reflection->getParameters();
+        return array_slice($reflectionParameters, 0, count($reflectionParameters) - $inherentNumber);
     }
 }

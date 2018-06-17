@@ -18,12 +18,13 @@ class DependentStruct
     public function __construct($container, $class)
     {
         $this->container = $container;
+        $this->dependentService = $this->container->dependentService;
         $this->dependent_store = $this->container->dependent_store;
 
-        $refObject = new ReflectionClass($class);
-        $params = $this->getParams($refObject, '__construct');
-        $this->singletons = $refObject->newInstanceArgs($params);
-        $this->reflections = $refObject;
+        $reflectionClass = new ReflectionClass($class);
+        $params = $this->getParams($reflectionClass, '__construct');
+        $this->singletons = $reflectionClass->newInstanceArgs($params);
+        $this->reflections = $reflectionClass;
     }
 
     /**
@@ -44,13 +45,13 @@ class DependentStruct
      * 
      * @throws \InvalidArgumentException
      */
-    public function reverse($method, $inherentParams=[])
+    public function injection($method, $inherentParams=[])
     {
         if (! $this->reflections->hasMethod($method)) {
             throw new \InvalidArgumentException('Method not exists.');
         }
-        $instanceArray = $this->getParams($this->reflections, $method, count($inherentParams));
-        $params = array_merge($instanceArray, $inherentParams);
+        $instances = $this->getParams($this->reflections, $method, count($inherentParams));
+        $params = array_merge($instances, $inherentParams);
         $refmethod = $this->reflections->getMethod($method);
         return $refmethod->invokeArgs(
             $this->singletons,
@@ -69,17 +70,17 @@ class DependentStruct
      */
     private function getParams($reflectionClass, $method, $inherentNumber = 0)
     {
-        $instanceArray = [];
+        $instances = [];
         if (!$reflectionClass->hasMethod($method)) {
-            return $instanceArray;
+            return $instances;
         }
 
         $reflection = $reflectionClass->getMethod($method);
-        $reflectionInstances = $this->container->dependentService->getReflectionInstances($reflection, $inherentNumber);
+        $reflectionParameters = $this->dependentService->getReflectionParameters($reflection, $inherentNumber);
         
-        foreach($reflectionInstances as $instance) {
-            $instanceArray[] = $this->container->dependentService->getAndRegistReflection($instance)->getInstance();
+        foreach($reflectionParameters as $reflectionParameter) {
+            $instances[] = $this->dependentService->getDependentByParameter($reflectionParameter)->getInstance();
         }
-        return $instanceArray;
+        return $instances;
     }
 }
