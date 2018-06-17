@@ -23,7 +23,7 @@ class Midtest
 {
     public function handle(Request $request, Response $response, $next, $num)
     {
-        return $response->json($request->getParams());
+        $next();
     }
 }
 
@@ -31,7 +31,7 @@ class Midtest2
 {
     public function handle(Request $request, $next, $num)
     {
-        echo 2;
+        $request->withQueryParam('c', $num);
         $next();
     }
 }
