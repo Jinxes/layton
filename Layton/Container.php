@@ -13,13 +13,10 @@ class Container implements ContainerInterface, \ArrayAccess
     public $_store;
     public $_frozen;
 
-    public function __construct(array $entrys = [])
+    public function __construct()
     {
         $this->_store = [];
         $this->_frozen = [];
-        foreach ($entrys as $key => $entry) {
-            $this->offsetSet($key, $entry);
-        }
     }
 
     /**

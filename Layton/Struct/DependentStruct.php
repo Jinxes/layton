@@ -13,9 +13,10 @@ class DependentStruct
     private $reflections;
 
     /**
+     * @param Container $container
      * @param string $class
      */
-    public function __construct($container, $class)
+    public function __construct(Container $container, $class)
     {
         $this->container = $container;
         $this->dependentService = $this->container->dependentService;
@@ -23,7 +24,9 @@ class DependentStruct
 
         $reflectionClass = new ReflectionClass($class);
         $params = $this->getParams($reflectionClass, '__construct');
+
         $this->singletons = $reflectionClass->newInstanceArgs($params);
+        $this->singletons->container = $container;
         $this->reflections = $reflectionClass;
     }
 

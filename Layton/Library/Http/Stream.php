@@ -79,19 +79,9 @@ class Stream implements StreamInterface
      */
     public static function createFromWrapper($wrapper)
     {
-        return new static(fopen($wrapper, 'r+'));
-    }
-
-    /**
-     * Create a new Stream.
-     *
-     * @param  resource $stream A PHP resource handle.
-     *
-     * @throws InvalidArgumentException If argument is not a resource.
-     */
-    public function __construct($stream)
-    {
-        $this->attach($stream);
+        $stream = new static();
+        $stream->attach(fopen($wrapper, 'r+'));
+        return $stream;
     }
 
     public function __toString()
@@ -120,7 +110,7 @@ class Stream implements StreamInterface
      *
      * @throws \InvalidArgumentException
      */
-    protected function attach($newStream)
+    public function attach($newStream)
     {
         if (! is_resource($newStream)) {
             throw new \InvalidArgumentException(__METHOD__ . ' argument must be a PHP resource');

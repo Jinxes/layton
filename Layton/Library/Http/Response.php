@@ -21,10 +21,10 @@ class Response extends HttpMessage
      */
     protected $status = 200;
 
-    public function __construct()
+    public function __construct(Headers $headers)
     {
         $this->status = Response::HTTP_OK;
-        $this->headers = new Headers();
+        $this->headers = Headers::create();
         $this->body = Stream::createFromWrapper(Stream::WRAPPER_PHP_TEMP);
     }
 
@@ -141,5 +141,18 @@ class Response extends HttpMessage
         if (is_null($status) && $this->getStatusCode() === HttpMessage::HTTP_OK) {
             $status = 302;
         }
+    }
+
+    /**
+     * Json response.
+     * 
+     * @param array|object $data
+     */
+    public function json($data, $status = HttpMessage::HTTP_OK, $encodingOptions = 0)
+    {
+        $json = json_encode($data, $encodingOptions);
+        return $this->withBody($json)
+            ->withStatusCode($status)
+            ->withHeader('content-type', 'application/json');
     }
 }

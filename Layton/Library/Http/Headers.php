@@ -6,6 +6,22 @@ use Layton\Library\Standard\ArrayBucket;
 class Headers extends ArrayBucket
 {
     /**
+     * Create the default values from httpMessages array.
+     * 
+     * @param array $httpMessages
+     * 
+     * @return static
+     */
+    public static function create(array $params = [])
+    {
+        $headers = new static();
+        foreach ($params as $key => $value) {
+            $headers->set($key, $value);
+        }
+        return $headers;
+    }
+
+    /**
      * @param  string $key
      *
      * @return string Normalized header field name
@@ -13,6 +29,9 @@ class Headers extends ArrayBucket
     public static function normalizeKey($key)
     {
         $key = strtr(strtolower($key), '_', '-');
+        if (strpos($key, 'http-') === 0) {
+            $key = substr($key, 5);
+        }
 
         return $key;
     }
@@ -65,7 +84,12 @@ class Headers extends ArrayBucket
      */
     public function get($key, $default = null)
     {
-        return parent::get(static::normalizeKey($key), $default);
+        $values = parent::get(static::normalizeKey($key), $default);
+
+        if (is_array($values) && count($values) === 1) {
+            return $values[0];
+        }
+        return $values;
     }
 
     /**

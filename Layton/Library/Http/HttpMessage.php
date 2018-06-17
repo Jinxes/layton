@@ -162,7 +162,7 @@ class HttpMessage implements MessageInterface
     /**
      * @var \Layton\Library\Http\Headers
      */
-    protected $headers;
+    public $headers;
 
     /**
      * @var \Psr\Http\Message\StreamInterface
@@ -210,7 +210,7 @@ class HttpMessage implements MessageInterface
      */
     public function getHeader($name)
     {
-        return $this->headers->get($name, []);
+        return $this->headers->get($name);
     }
 
     /**

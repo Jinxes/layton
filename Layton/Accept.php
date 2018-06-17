@@ -4,7 +4,12 @@ namespace Layton;
 use Layton\Library\Http\Response;
 use Layton\Exception\NotFoundException;
 use Layton\Library\Standard\DI;
+use Layton\Struct\AcceptStruct;
 
+/**
+ * @property \Layton\Struct\AcceptStruct $acceptStruct
+ * @property MiddleWares $middleWares
+ */
 class Accept
 {
     /** @var App $app */
@@ -17,6 +22,8 @@ class Accept
     {
         $this->app = $app;
         $this->dependentService = $this->app->container->dependentService;
+        $this->acceptStruct = $this->app->accept();
+        $this->middleWares = new MiddleWares($this->acceptStruct->middleWares);
     }
 
     /**
@@ -26,28 +33,46 @@ class Accept
      */
     public function send()
     {
-        /** @var \Layton\Struct\AcceptStruct $acceptStruct */
-        $acceptStruct = $this->app->accept();
-
-        if ($this->connectMiddleWare($acceptStruct->middleWares, $acceptStruct->args)) {
-            if (\method_exists($acceptStruct->controller, '__invoke')) {
-                // return \call_user_func_array($acceptStruct->controller, [$this->app]);
-                $response = $this->dependentService->call(
-                    $acceptStruct->controller,
-                    $acceptStruct->args
-                );
-            } else {
-                $response = $this->dependentService
-                ->new($acceptStruct->controller)
+        $next = $this->nextFactory(function() {
+            array_shift($this->acceptStruct->args);
+            return $this->dependentService
+                ->new($this->acceptStruct->controller)
                 ->injection(
-                    $acceptStruct->method,
-                    $acceptStruct->args
+                    $this->acceptStruct->method,
+                    $this->acceptStruct->args
                 );
+        });
+
+        array_unshift($this->acceptStruct->args, $next);
+        $response = $this->dependentService->new($this->middleWares->current())
+            ->injection('handle', $this->acceptStruct->args);
+
+        if ($response instanceof Response) {
+            $this->sendByResponse($response);
+        }
+    }
+
+    /**
+     * Make the `next()` function for middlewares.
+     * 
+     * @param callback $callback For all middleware valid.
+     */
+    public function nextFactory($callback)
+    {
+        return function () use ($callback) {
+            $this->middleWares->next();
+            if ($this->middleWares->valid()) {
+                $response = $this->dependentService
+                    ->new($this->middleWares->current())
+                    ->injection('handle', $this->acceptStruct->args);
+            } else {
+                $response = $callback();
             }
 
-            $this->sendByResponse($response);
-            return $this;
-        }
+            if ($response instanceof Response) {
+                $this->sendByResponse($response);
+            }
+        };
     }
 
     /**
@@ -109,9 +134,9 @@ class Accept
      */
     public function connectMiddleWare($middleWares, $args = [])
     {
-        // $dependentService = $this->app->container->dependentService;
+        $dependentService = $this->app->container->dependentService;
         foreach ($middleWares as $middleWare) {
-            $result = $this->app->container->dependentService->new($middleWare)->injection('main', $args);
+            $result = $dependentService->new($middleWare)->injection('main', $args);
             if ($result instanceof Response) {
                 $this->sendByResponse($result);
                 return false;
