@@ -40,7 +40,10 @@ class Ctrl
 {
     public function test(Request $request, Response $response, $id)
     {
-        return $response->json($request->getParams());
+        //$request->getParams()
+        return $response->template('temp', [
+            'mess' => 'Hello World'
+        ]);
     }
 }
 

@@ -147,12 +147,71 @@ class Response extends HttpMessage
      * Json response.
      * 
      * @param array|object $data
+     * @param integer $status
+     * @param mixed $encodingOptions
+     * 
+     * @return static
      */
     public function json($data, $status = HttpMessage::HTTP_OK, $encodingOptions = 0)
     {
         $json = json_encode($data, $encodingOptions);
-        return $this->withBody($json)
-            ->withStatusCode($status)
-            ->withHeader('content-type', 'application/json');
+        $this->withStatusCode($status)
+            ->withHeader('content-type', 'application/json')
+            ->getBody()->write($json);
+        return $this;
+    }
+
+    /**
+     * Raw Response.
+     * 
+     * @param string $data
+     * @param integer $status
+     * 
+     * @return static
+     */
+    public function text($data, $status = HttpMessage::HTTP_OK)
+    {
+        $this->withStatusCode($status)
+            ->withHeader('content-type', 'text/plain')
+            ->getBody()->write((string)$data);
+        return $this;
+    }
+
+    /**
+     * Html Response.
+     * 
+     * @param string $data
+     * @param integer $status
+     * 
+     * @return static
+     */
+    public function html($data, $status = HttpMessage::HTTP_OK)
+    {
+        $this->withStatusCode($status)
+            ->withHeader('content-type', 'text/html')
+            ->getBody()->write((string)$data);
+        return $this;
+    }
+
+    /**
+     * Render a html template.
+     * 
+     * @param string $path
+     * @param array $data
+     * @param integer $status
+     * 
+     * @return static
+     */
+    public function template($path, $data = [], $status = HttpMessage::HTTP_OK)
+    {
+        $tempFile = $path . '.php';
+        if (! is_file($tempFile)) {
+            throw new \RuntimeException('Could not find the template file <' . $path . '>');
+        }
+        ob_start();
+        extract($data);
+        include($path . '.php');
+        $content = ob_get_clean();
+        return $this->html($content, $status);
     }
 }

@@ -314,7 +314,6 @@ class Stream implements StreamInterface
      */
     public function seek($offset, $whence = SEEK_SET)
     {
-        // Note that fseek returns 0 on success!
         if (!$this->isSeekable() || fseek($this->stream, $offset, $whence) === -1) {
             throw new \RuntimeException('Could not seek in stream');
         }

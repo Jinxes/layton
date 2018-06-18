@@ -4,7 +4,7 @@ namespace Layton\Library\Http;
 use Psr\Http\Message\MessageInterface;
 use Psr\Http\Message\StreamInterface;
 
-class HttpMessage
+class HttpMessage implements MessageInterface
 {
     const HTTP_CONTINUE = 100;
     const HTTP_SWITCHING_PROTOCOLS = 101;
@@ -280,21 +280,15 @@ class HttpMessage
     /**
      * Set http response body.
      * 
-     * @param StreamInterface|string $body
+     * @param StreamInterface $body
      * 
      * @throws \RuntimeException
      * 
      * @return static
      */
-    public function withBody($body)
+    public function withBody(StreamInterface $body)
     {
-        if (\is_string($body)) {
-            $this->body->write($body);
-        } elseif ($body instanceof StreamInterface) {
-            $this->body = $body;
-        } else {
-            throw new \RuntimeException('Body must be instance of Stream.');
-        }
+        $this->body = $body;
         return $this;
     }
 
