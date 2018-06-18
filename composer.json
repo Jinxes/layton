@@ -3,7 +3,6 @@
     "description": "The Layton PHP framework",
     "type": "library",
     "license": "MIT",
-    "minimum-stability": "dev-master",
     "authors": [
         {
             "name": "jinxes",
