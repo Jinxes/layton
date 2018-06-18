@@ -9,26 +9,32 @@ use Layton\Struct\DependentStruct;
 
 class DependentService extends LaytonService
 {
-    public function __construct($container)
-    {
-        parent::__construct($container);
-        $this->dependent_store = $this->container->dependent_store;
-    }
-
     /**
-     * @param string $class
+     * @param string $className
      * 
      * @return DependentStruct
      */
     public function newClass($className)
     {
-        if ($this->dependent_store->has($className)) {
-            return $this->dependent_store[$className];
+        if ($this->container->has($className)) {
+            return $this->container[$className];
         }
 
         $dependentStruct = new DependentStruct($this->container, $className);
-        $this->dependent_store[$className] = $dependentStruct;
+        $this->container[$className] = $dependentStruct;
         return $dependentStruct;
+    }
+
+    /**
+     * Regist and instance an object.
+     * 
+     * @param string $className
+     * 
+     * @return object
+     */
+    public function instance($className)
+    {
+        return $this->newClass($className)->getInstance();
     }
 
     /**
@@ -74,8 +80,8 @@ class DependentService extends LaytonService
         }
         $className = $reflectionClass->getName();
 
-        if (array_key_exists($className, $this->dependent_store)) {
-            return $this->dependent_store[$className];
+        if (array_key_exists($className, $this->container)) {
+            return $this->container[$className];
         }
         return $this->newClass($className);
     }

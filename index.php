@@ -38,8 +38,9 @@ class Midtest2
 
 class Ctrl
 {
-    public function test(Request $request, Response $response, $id)
+    public function test(Response $response, $id)
     {
+        // print_r($this->container);
         //$request->getParams()
         return $response->template('temp', [
             'mess' => 'Hello World'
@@ -50,11 +51,15 @@ class Ctrl
 
 $app = new App();
 
-$app->get('/api/user/:num', Ctrl::class . '>test');
+$app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest2::class);
 
 
 $app->get('/api/admin/:num', function (Request $request, Response $response, $num) use ($app) {
     return $response->json($request->getParams());
+})->middleWare(Midtest2::class);
+
+$app->get('/user/:id', function (Response $response, $id) {
+    return $response->html('Hello World');
 });
 
 (new Accept($app))->send();

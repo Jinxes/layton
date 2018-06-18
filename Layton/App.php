@@ -7,11 +7,14 @@ use Layton\Traits\RouteMapingTrait;
 use Layton\Services\RouteService;
 use Layton\Struct\AcceptStruct;
 use Layton\Services\DependentService;
+use Layton\Library\Standard\ArrayBucket;
+use Layton\Library\Http\Request;
 
 /**
  * @access public 
  * @property Container $container
- * @property \Layton\Services\RouteService $routeService
+ * @property RouteService $routeService
+ * @property Request $request
  */
 class App
 {
@@ -19,20 +22,20 @@ class App
 
     public $container;
     public $routeService;
-    public $routeMethodSep = '>';
 
-    public function __construct()
+    public function __construct(array $config = [])
     {
         $this->container = new Container();
 
+        $this->container->dependentService = new DependentService($this->container);
+        $this->request = $this->container->dependentService->instance(Request::class);
+
+        $defaultConfig = new ArrayBucket();
+        $defaultConfig->fill($config);
+        $this->container->config = $defaultConfig;
+
         $this->container->routeService = function($c) {
             return new RouteService($c);
-        };
-
-        $this->container->dependent_store = new Container();
-
-        $this->container->dependentService = function($c) {
-            return new DependentService($c);
         };
 
         $this->routeService = $this->container->routeService;
@@ -52,6 +55,14 @@ class App
         return $this->routeService->attach($method, $match, $callback);
     }
 
+    /**
+     * Route group.
+     * 
+     * @param string $match
+     * @param callback $callback
+     * 
+     * @return RouteGroup
+     */
     public function group($match, $callback)
     {
         $group = new RouteGroup($this->container, $match);
@@ -69,18 +80,19 @@ class App
      */
     public function accept()
     {
+        $routeMethodSep = $this->container->config->get('Route-Method-Sep', '>');
         $storage = $this->routeService->getStorage();
         foreach ($storage as $match => $route) {
             $matched = $this->matchHttpRequest($match);
             if ($matched !== false) {
-                if ($route->method !== $_SERVER['REQUEST_METHOD']) {
+                if (!$this->request->isMethod($route->method)) {
                     throw new MethodNotAllowedException();
                 }
 
                 $middleWares = $this->getMiddleWareFromRoute($route);
                 if (\is_string($route->callback)) {
-                    if (strpos($route->callback, $this->routeMethodSep) !== false) {
-                        list($controller, $method) = explode($this->routeMethodSep, $route->callback);
+                    if (strpos($route->callback, $routeMethodSep) !== false) {
+                        list($controller, $method) = explode($routeMethodSep, $route->callback);
                         return new AcceptStruct($controller, $method, $matched, $middleWares);
                     }
                 }
@@ -136,7 +148,7 @@ class App
      */
     private function matchHttpRequest($pattern)
     {
-        $pathInfo = empty($_SERVER['PATH_INFO']) ? '' : $_SERVER['PATH_INFO'];
+        $pathInfo = $this->request->server->get('path-info', '');
         $pattern = $this->replacePatternKeyword($pattern);
         $regexp = '/^'. $pattern .'\/?$/';
         if (\preg_match($regexp, $pathInfo, $matched)) {

@@ -20,7 +20,6 @@ class DependentStruct
     {
         $this->container = $container;
         $this->dependentService = $this->container->dependentService;
-        $this->dependent_store = $this->container->dependent_store;
 
         $reflectionClass = new ReflectionClass($class);
         $params = $this->getParams($reflectionClass, '__construct');

@@ -9,6 +9,16 @@ class ArrayBucket implements \Countable, InteractiveInterface
     protected $data = [];
 
     /**
+     * Fill array data.
+     * 
+     * @param array $data
+     */
+    public function fill(array $data)
+    {
+        $this->data = $data;
+    }
+
+    /**
      * @param string $key
      * @param string $value
      */
