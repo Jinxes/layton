@@ -40,7 +40,7 @@ class Ctrl
 {
     public function test(Response $response, $id)
     {
-        // print_r($this->container);
+        print_r($this->container->config->get('test'));
         //$request->getParams()
         return $response->template('temp', [
             'mess' => 'Hello World'
@@ -49,7 +49,7 @@ class Ctrl
 }
 
 
-$app = new App();
+$app = new App(['test' => 'tests']);
 
 $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest2::class);
 

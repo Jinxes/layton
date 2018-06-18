@@ -298,6 +298,15 @@ class Request extends HttpMessage
         return $this->params;
     }
 
+    public function getParam($key, $default = null)
+    {
+        $params = $this->getParams();
+        if (array_key_exists($key, $params)) {
+            return $params[$key];
+        }
+        return $default;
+    }
+
     /**
      * If is XHR request return True or return false.
      *

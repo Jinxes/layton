@@ -155,22 +155,4 @@ class Accept
     {
         return $response->send();
     }
-
-    /**
-     * Run all middleware if failed return false.
-     * 
-     * @param array $middleWares
-     */
-    public function connectMiddleWare($middleWares, $args = [])
-    {
-        $dependentService = $this->app->container->dependentService;
-        foreach ($middleWares as $middleWare) {
-            $result = $dependentService->newClass($middleWare)->injection('main', $args);
-            if ($result instanceof Response) {
-                $this->sendByResponse($result);
-                return false;
-            }
-        }
-        return true;
-    }
 }
