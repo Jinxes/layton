@@ -33,21 +33,29 @@ class Accept
      */
     public function send()
     {
-        if (\method_exists($this->acceptStruct->controller, '__invoke')) {
-            $next = $this->nextFactory(function() {
-                array_shift($this->acceptStruct->args);
-                return $this->injectionClosure();
-            });
-        } else {
-            $next = $this->nextFactory(function() {
-                array_shift($this->acceptStruct->args);
-                return $this->injectionController();
-            });
-        }
+        if ($this->middleWares->valid()) {
+            if (\method_exists($this->acceptStruct->controller, '__invoke')) {
+                $next = $this->nextFactory(function() {
+                    array_shift($this->acceptStruct->args);
+                    return $this->injectionClosure();
+                });
+            } else {
+                $next = $this->nextFactory(function() {
+                    array_shift($this->acceptStruct->args);
+                    return $this->injectionController();
+                });
+            }
 
-        array_unshift($this->acceptStruct->args, $next);
-        $response = $this->dependentService->newClass($this->middleWares->current())
-            ->injection('handle', $this->acceptStruct->args);
+            array_unshift($this->acceptStruct->args, $next);
+            $response = $this->dependentService->newClass($this->middleWares->current())
+                ->injection('handle', $this->acceptStruct->args);
+        } else {
+            if (\method_exists($this->acceptStruct->controller, '__invoke')) {
+                $response = $this->injectionClosure();
+            } else {
+                $response = $this->injectionController();
+            }
+        }
 
         if ($response instanceof Response) {
             $this->sendByResponse($response);
