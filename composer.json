@@ -21,7 +21,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Layton\\": "Layton"
+            "Jinxes\\Layton\\": "Layton"
         }
     }
 }
