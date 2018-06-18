@@ -55,6 +55,6 @@ $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest::class, M
 
 $app->get('/api/admin/:num', function (Request $request, Response $response, $num) use ($app) {
     return $response->json($request->getParams());
-})->middleWare(Midtest::class);
+})->middleWare(Midtest2::class);
 
 (new Accept($app))->send();

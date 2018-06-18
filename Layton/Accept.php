@@ -33,15 +33,17 @@ class Accept
      */
     public function send()
     {
-        $next = $this->nextFactory(function() {
-            array_shift($this->acceptStruct->args);
-            return $this->dependentService
-                ->newClass($this->acceptStruct->controller)
-                ->injection(
-                    $this->acceptStruct->method,
-                    $this->acceptStruct->args
-                );
-        });
+        if (\method_exists($this->acceptStruct->controller, '__invoke')) {
+            $next = $this->nextFactory(function() {
+                array_shift($this->acceptStruct->args);
+                return $this->injectionClosure();
+            });
+        } else {
+            $next = $this->nextFactory(function() {
+                array_shift($this->acceptStruct->args);
+                return $this->injectionController();
+            });
+        }
 
         array_unshift($this->acceptStruct->args, $next);
         $response = $this->dependentService->newClass($this->middleWares->current())
@@ -50,6 +52,25 @@ class Accept
         if ($response instanceof Response) {
             $this->sendByResponse($response);
         }
+    }
+
+    public function injectionController()
+    {
+        return $this->dependentService
+            ->newClass($this->acceptStruct->controller)
+            ->injection(
+                $this->acceptStruct->method,
+                $this->acceptStruct->args
+            );
+    }
+
+    public function injectionClosure()
+    {
+        return $this->dependentService
+            ->call(
+                $this->acceptStruct->controller,
+                $this->acceptStruct->args
+            );
     }
 
     /**
