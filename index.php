@@ -53,13 +53,8 @@ $app = new App(['test' => 'tests']);
 
 $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest2::class);
 
-
-$app->get('/api/admin/:num', function (Request $request, Response $response, $num) use ($app) {
-    return $response->json($request->getParams());
-})->middleWare(Midtest2::class);
-
-$app->get('/user/:id', function (Response $response, $id) {
-    return $response->html('Hello World');
+$app->get('/user', function (Response $response) {
+    return $response->text('Hello World');
 });
 
 (new Accept($app))->send();

@@ -23,5 +23,11 @@
         "psr-4": {
             "Layton\\": "Layton"
         }
+    },
+    "scripts": {
+        "start": "php -S localhost:8000"
+    },
+    "config": {
+        "process-timeout": 0
     }
 }
