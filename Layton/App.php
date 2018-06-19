@@ -9,6 +9,7 @@ use Layton\Struct\AcceptStruct;
 use Layton\Services\DependentService;
 use Layton\Library\Standard\ArrayBucket;
 use Layton\Library\Http\Request;
+use Layton\Library\Http\Response;
 
 /**
  * @access public 
@@ -29,6 +30,7 @@ class App
 
         $this->container->dependentService = new DependentService($this->container);
         $this->request = $this->container->dependentService->instance(Request::class);
+        $this->response = $this->container->dependentService->instance(Response::class);
 
         $defaultConfig = new ArrayBucket();
         $defaultConfig->fill($config);
