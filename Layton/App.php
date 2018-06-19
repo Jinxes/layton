@@ -78,6 +78,14 @@ class App
         return $this->routeService->attach($method, $match, $callback);
     }
 
+    public function route($match, $methodsOrCallback)
+    {
+        if ($methodsOrCallback instanceOf \Closure) {
+            return $this->group($match, $methodsOrCallback);
+        }
+        return new RouteFactory($match, $methodsOrCallback, $this->routeService);
+    }
+
     /**
      * Route group.
      * 

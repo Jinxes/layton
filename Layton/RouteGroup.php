@@ -41,6 +41,17 @@ class RouteGroup implements RouteConfigureInterface
         return $route;
     }
 
+    public function __invoke($match, $methodsOrCallback)
+    {
+        if ($methodsOrCallback instanceOf \Closure) {
+            return $this->group($match, $methodsOrCallback);
+        }
+        $match = $this->base . $match;
+        $routeFactory = new RouteFactory($match, $methodsOrCallback, $this->routeService);
+        $routeFactory->setGroup($this);
+        return $routeFactory;
+    }
+
     public function group($match, $callback)
     {
         $match = $this->base . $match;

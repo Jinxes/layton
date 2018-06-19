@@ -44,7 +44,7 @@ class Route implements RouteConfigureInterface
     /**
      * @param RouteGroup $group
      */
-    public function setGroup(RouteGroup $group)
+    public function setGroup($group)
     {
         $this->group = $group;
         return $this;
