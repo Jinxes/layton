@@ -29,9 +29,9 @@ class Midtest
 
 class Midtest2
 {
-    public function handle(Request $request, $next, $num)
+    public function handle(Request $request, $next, $id)
     {
-        $request->withQueryParam('c', $num);
+        $request->withQueryParam('c', 'Hello World');
         $next();
     }
 }
@@ -40,7 +40,6 @@ class Ctrl
 {
     public function test(Response $response, $id)
     {
-        print_r($this->container->config->get('test'));
         //$request->getParams()
         return $response->template('temp', [
             'mess' => 'Hello World'
@@ -49,12 +48,12 @@ class Ctrl
 }
 
 
-$app = new App(['test' => 'tests']);
+$app = new App();
 
 $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest2::class);
 
-$app->get('/user', function (Response $response) {
-    return $response->text('Hello World');
-});
+$app->get('/user/:num', function (Request $request, Response $response, $id) {
+    return $response->json($request->getParams());
+})->middleWare(Midtest2::class);
 
-(new Accept($app))->send();
+$app->start();
