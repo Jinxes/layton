@@ -34,7 +34,7 @@ use Layton\Library\Http\Response;
 
 $app = new \Layton\App();
 
-$app->get('/user/:num', function (Response $response, $id) {
+$app->get('/', function (Response $response) {
 
     return $response->html('Hello World!');
 

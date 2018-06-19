@@ -297,7 +297,7 @@ class App
      */
     private function matchHttpRequest($pattern)
     {
-        $pathInfo = $this->request->server->get('path-info', '');
+        $pathInfo = $this->request->server->get('path-info', '/');
         $pattern = $this->replacePatternKeyword($pattern);
         $regexp = '/^'. $pattern .'\/?$/';
         if (\preg_match($regexp, $pathInfo, $matched)) {
