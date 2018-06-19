@@ -52,8 +52,8 @@ $app = new App();
 
 $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest2::class);
 
-$app->get('/user/:num', function (Request $request, Response $response, $id) {
-    return $response->json($request->getParams());
-})->middleWare(Midtest2::class);
+$app->get('/', function (Request $request, Response $response) {
+    return $response->html('hello world');
+});
 
 $app->start();
