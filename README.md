@@ -41,7 +41,7 @@ $app->get('/', function (Response $response) {
 $app->start();
 
 ```
-1. _装饰器风格_
+2. _装饰器风格_
 ```php
 use Layton\Library\Http\Response;
 
