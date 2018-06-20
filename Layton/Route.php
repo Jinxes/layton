@@ -12,7 +12,7 @@ class Route implements RouteConfigureInterface
 
     protected $container;
 
-    public $method;
+    public $methods;
 
     public $callback;
     
@@ -26,9 +26,9 @@ class Route implements RouteConfigureInterface
      * @param string $method
      * @param callback $callback
      */
-    public function __construct($method, $callback)
+    public function __construct(array $methods, $callback)
     {
-        $this->method = $method;
+        $this->methods = $methods;
         $this->callback = $callback;
     }
     

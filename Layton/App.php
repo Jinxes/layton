@@ -113,7 +113,7 @@ class App
         $storage = $this->routeService->getStorage();
         foreach ($storage as $match => $route) {
             if (($matched = $this->matchHttpRequest($match)) !== false) {
-                if (!$this->request->isMethod($route->method)) {
+                if (!in_array($this->request->getMethod(), $route->methods)) {
                     throw new MethodNotAllowedException();
                 }
 
@@ -141,10 +141,10 @@ class App
      * 
      * @return callback
      */
-    public function getInvokeMiddlewareNext($controller, $args, MiddleWares $middleWares)
+    public function getInvokeMiddlewareNext($controller, MiddleWares $middleWares)
     {
-        return $this->nextFactory($middleWares, $args, function() use ($controller, $args) {
-            return $this->injectionClosure($controller, $args);
+        return $this->nextClosure($middleWares, function() use ($controller, $middleWares) {
+            return $this->injectionClosure($controller, $middleWares->getOriginArgs());
         });
     }
 
@@ -158,10 +158,10 @@ class App
      * 
      * @return callback
      */
-    public function getControllerMiddlewareNext($controller, $method, $args, MiddleWares $middleWares)
+    public function getControllerMiddlewareNext($controller, $method, MiddleWares $middleWares)
     {
-        return $this->nextFactory($middleWares, $args, function() use ($controller, $method, $args) {
-            return $this->injectionClass($controller, $method, $args);
+        return $this->nextClosure($middleWares, function() use ($controller, $method, $middleWares) {
+            return $this->injectionClass($controller, $method, $middleWares->getOriginArgs());
         });
     }
 
@@ -178,12 +178,12 @@ class App
         $isClosure = \method_exists($controller, '__invoke');
         if ($middleWares->valid()) {
             if ($isClosure) {
-                $next = $this->getInvokeMiddlewareNext($controller, $args, $middleWares);
+                $next = $this->getInvokeMiddlewareNext($controller, $middleWares);
             } else {
-                $next = $this->getControllerMiddlewareNext($controller, $method, $args, $middleWares);
+                $next = $this->getControllerMiddlewareNext($controller, $method, $middleWares);
             }
-            array_unshift($args, $next);
-            $response = $this->injectionClass($middleWares->current(), 'handle', $args);
+            $middleWares->withNextArgs($next, $args);
+            $response = $this->injectionClass($middleWares->current(), 'handle', $middleWares->getNextArgs());
         } else {
             $response = $isClosure ?
                 $this->injectionClosure($controller, $args) :
@@ -229,11 +229,12 @@ class App
      * 
      * @param callback $callback For all middleware valid.
      */
-    public function nextFactory($middleWares, $args, $callback)
+    public function nextClosure($middleWares, $callback)
     {
-        return function () use ($middleWares, $args, $callback) {
+        return function () use ($middleWares, $callback) {
             $middleWares->next();
             if ($middleWares->valid()) {
+                $args = $middleWares->getNextArgs();
                 $response = $this->injectionClass($middleWares->current(), 'handle', $args);
             } else {
                 $response = $callback();

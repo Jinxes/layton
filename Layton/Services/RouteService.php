@@ -33,9 +33,12 @@ class RouteService extends LaytonService
      * 
      * @return Route
      */
-    public function attach($method, $match, $callable)
+    public function attach($methods, $match, $callable)
     {
-        $route = new Route($method, $callable);
+        if (is_string($methods)) {
+            $methods = [$methods];
+        }
+        $route = new Route($methods, $callable);
         $this->storage[$match] = $route;
         return $route;
     }

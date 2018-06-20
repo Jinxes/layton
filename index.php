@@ -21,9 +21,10 @@ class Test1
 
 class Midtest
 {
-    public function handle(Request $request, Response $response, $next, $num)
+    public function handle(Request $request, Response $response, $next, $args)
     {
-        echo 333;
+        print_r($args);
+        $request->withAttribute('a', 1);
         $next();
     }
 }
@@ -32,7 +33,7 @@ class Midtest2
 {
     public function handle(Request $request, $next, $id)
     {
-        echo 1111;
+        $request->withAttribute('b', 2);
         // $request->withQueryParam('c', 'Hello World');
         $next();
     }
@@ -66,7 +67,20 @@ $app = new App();
 // $app->route('/app/:num', 'GET')(Ctrl::class, 'test');
 
 $app->route('/app', function($route) {
-    $route('/kiss/:num', 'GET')(Ctrl::class, 'test')->middleWare(Midtest2::class);
-})->middleWare(Midtest::class);
+
+    $route('/kiss/:num', ['GET'])
+    (function(Request $request, Response $response, $id) {
+        $attr = $request->getAttributes();
+        return $response->json($attr);
+    })->middleWare(Midtest::class);
+
+});
+
+// $app->route('/app/kiss/:num', Request::METHOD_GET)
+// (function(Request $request, Response $response, $id) {
+//     $attr = $request->getAttributes();
+//     return $response->json($attr);
+// });
+
 
 $app->start();
