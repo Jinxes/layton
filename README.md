@@ -26,7 +26,7 @@ composer require layton/layton dev-master
 
 ```
 
-## Layton 的 Hello World
+## 两种风格的 Hello World
 
 ```php
 
@@ -34,10 +34,15 @@ use Layton\Library\Http\Response;
 
 $app = new \Layton\App();
 
+// 嵌入式风格
 $app->get('/', function (Response $response) {
-
     return $response->html('Hello World!');
+});
 
+// 装饰器风格
+$app->route('/', ['GET'])
+(function(Response $response) {
+    return $response->html('Hello World!');
 });
 
 $app->start();

@@ -11,6 +11,12 @@ class MiddleWares implements Iterator
     /** @var array $middlewares */
     protected $middlewares;
 
+    /** @var callback $nextFunc */
+    protected $nextFunc;
+
+    protected $args = [];
+    protected $nextArgs = [];
+
     public function __construct(array $middlewares)
     {
         $this->middlewares = $middlewares;
@@ -40,5 +46,34 @@ class MiddleWares implements Iterator
     public function valid()
     {
         return isset($this->middlewares[$this->position]);
+    }
+
+    /**
+     * Set next function.
+     * 
+     * @param callback $nextFunc
+     */
+    public function withNextCall($nextFunc)
+    {
+        $this->nextFunc = $nextFunc;
+    }
+
+    public function withNextArgs($next, $args)
+    {
+        $this->args = $args;
+        $nextArg = [$args];
+        array_unshift($nextArg, $next);
+        // print_r($args);exit();
+        $this->nextArgs = $nextArg;
+    }
+
+    public function getNextArgs()
+    {
+        return $this->nextArgs;
+    }
+
+    public function getOriginArgs()
+    {
+        return $this->args;
     }
 }
