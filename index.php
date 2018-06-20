@@ -76,11 +76,10 @@ $app->route('/app', function($route) {
 
 });
 
-// $app->route('/app/kiss/:num', Request::METHOD_GET)
-// (function(Request $request, Response $response, $id) {
-//     $attr = $request->getAttributes();
-//     return $response->json($attr);
-// });
+$app->route('/app/:num', Request::METHOD_GET)
+(function(Request $request, Response $response) {
+    return $response->html('Hello World');
+});
 
 
 $app->start();
