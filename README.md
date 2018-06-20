@@ -27,27 +27,34 @@ composer require layton/layton dev-master
 ```
 
 ## 两种风格的 Hello World
-
+1. _极简风格_
 ```php
-
 use Layton\Library\Http\Response;
 
 $app = new \Layton\App();
 
-// 嵌入式风格
 $app->get('/', function (Response $response) {
     return $response->html('Hello World!');
 });
 
-// 装饰器风格
+
+$app->start();
+
+```
+1. _装饰器风格_
+```php
+use Layton\Library\Http\Response;
+
+$app = new \Layton\App();
+
 $app->route('/', ['GET'])
 (function(Response $response) {
     return $response->html('Hello World!');
 });
 
 $app->start();
-
 ```
+
 
 ## 获取更多帮助
 https://github.com/Jinxes/layton/wiki
