@@ -52,43 +52,6 @@ class Response extends HttpMessage
     }
 
     /**
-     * Sends HTTP headers.
-     *
-     * @return static
-     */
-    public function sendHeaders()
-    {
-        if (headers_sent()) {
-            return $this;
-        }
-
-        $statusCode = $this->getStatusCode();
-        $protocolVersion = $this->getProtocolVersion();
-        $statusText = $this->getReasonPhrase();
-        foreach ($this->headers->allPreserveCase() as $name => $values) {
-            foreach ($values as $value) {
-                header($name.': '.$value, false, $statusCode);
-            }
-        }
-        $statusHeader = sprintf('HTTP/%s %s %s', $protocolVersion, $statusCode, $statusText);
-        header($statusHeader, true, $statusCode);
-
-        return $this;
-    }
-
-    /**
-     * Sends body for the current web response.
-     *
-     * @return $this
-     */
-    public function sendBody()
-    {
-        $this->body->rewind();
-        echo $this->body->getContents();
-        return $this;
-    }
-
-    /**
      * Retrieves the response charset.
      *
      * @final

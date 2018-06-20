@@ -175,7 +175,7 @@ class App
      */
     public function connectMiddlewares($controller, $method, $args, MiddleWares $middleWares)
     {
-        $isClosure = \method_exists($controller, '__invoke');
+        $isClosure = is_callable($controller);
         if ($middleWares->valid()) {
             if ($isClosure) {
                 $next = $this->getInvokeMiddlewareNext($controller, $middleWares);
@@ -334,8 +334,12 @@ class App
             '(' => '\\(',
             ')' => '\\)'
         ];
-        $pattern = str_replace(\array_keys($regexKeywords), \array_values($regexKeywords), $pattern);
-        
+        $pattern = str_replace(
+            \array_keys($regexKeywords),
+            \array_values($regexKeywords),
+            $pattern
+        );
+
         $customKeyword = [
             '/' => '\\/',
             ':str' => '([a-zA-Z0-9-_]+)',

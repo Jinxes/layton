@@ -80,7 +80,7 @@ class Container implements ContainerInterface, \ArrayAccess
 
         if (!isset($this->_frozen[$offset])) {
             $entry = &$this->_store[$offset];
-            if (\method_exists($entry, '__invoke')) {
+            if (is_callable($entry)) {
                 $entry = $entry($this);
             }
             $this->_frozen[$offset] = &$entry;

@@ -64,7 +64,7 @@ $app = new App();
 //     return $response->html('hello world');
 // });
 
-// $app->route('/app/:num', 'GET')(Ctrl::class, 'test');
+$app->route('/app/:num', 'GET')(Ctrl::class, 'test');
 
 $app->route('/app', function($route) {
 
@@ -76,10 +76,10 @@ $app->route('/app', function($route) {
 
 });
 
-$app->route('/app/:num', Request::METHOD_GET)
-(function(Request $request, Response $response) {
-    return $response->html('Hello World');
-});
+// $app->route('/app/:num', Request::METHOD_GET)
+// (function(Request $request, Response $response, $sid) {
+//     return $response->html($sid);
+// });
 
 
 $app->start();

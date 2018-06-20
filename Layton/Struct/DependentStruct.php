@@ -14,16 +14,19 @@ class DependentStruct
 
     /**
      * @param Container $container
-     * @param string $class
+     * @param string $className
      */
-    public function __construct(Container $container, $class)
+    public function __construct(Container $container, $className)
     {
         $this->container = $container;
         $this->dependentService = $this->container->dependentService;
 
-        $reflectionClass = new ReflectionClass($class);
-        $params = $this->getParams($reflectionClass, '__construct');
+        $reflectionClass = new ReflectionClass($className);
+        if (!$reflectionClass->isInstantiable()) {
+            throw new \Exception('Can\'t instantiate ' . $className);
+        }
 
+        $params = $this->getParams($reflectionClass, '__construct');
         $this->singletons = $reflectionClass->newInstanceArgs($params);
         $this->singletons->container = $container;
         $this->reflections = $reflectionClass;
@@ -54,11 +57,7 @@ class DependentStruct
         }
         $instances = $this->getParams($this->reflections, $method, count($inherentParams));
         $params = array_merge($instances, $inherentParams);
-        $refmethod = $this->reflections->getMethod($method);
-        return $refmethod->invokeArgs(
-            $this->singletons,
-            $params
-        );
+        return call_user_func_array([$this->singletons, $method], $params);
     }
 
     /**
@@ -79,7 +78,7 @@ class DependentStruct
 
         $reflection = $reflectionClass->getMethod($method);
         $reflectionParameters = $this->dependentService->getReflectionParameters($reflection, $inherentNumber);
-        
+
         foreach($reflectionParameters as $reflectionParameter) {
             $instances[] = $this->dependentService->getDependentByParameter($reflectionParameter)->getInstance();
         }
