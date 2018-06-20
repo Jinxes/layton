@@ -22,6 +22,8 @@ class Route implements RouteConfigureInterface
 
     public $group = null;
 
+    public $decorators = [];
+
     /**
      * @param string $method
      * @param callback $callback
@@ -48,5 +50,10 @@ class Route implements RouteConfigureInterface
     {
         $this->group = $group;
         return $this;
+    }
+
+    public function setDecorators(...$decorators)
+    {
+        $this->decorators = $decorators;
     }
 }

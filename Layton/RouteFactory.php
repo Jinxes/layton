@@ -9,6 +9,8 @@ class RouteFactory
 
     public $group;
 
+    private $decorators = [];
+
     public function __construct($match, $methodsOrCallback, $routeService)
     {
         $this->match = $match;
@@ -25,6 +27,12 @@ class RouteFactory
         }
         $route->setGroup($this->group);
         return $route;
+    }
+
+    public function decorators(...$decorators)
+    {
+        $this->decorators = $decorators;
+        return $this;
     }
 
     public function setGroup($group)

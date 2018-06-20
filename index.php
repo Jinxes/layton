@@ -64,7 +64,7 @@ $app = new App();
 //     return $response->html('hello world');
 // });
 
-$app->route('/app/:num', 'GET')(Ctrl::class, 'test');
+// $app->route('/app/:num', 'GET')(Ctrl::class, 'test');
 
 $app->route('/app', function($route) {
 
@@ -76,10 +76,22 @@ $app->route('/app', function($route) {
 
 });
 
-// $app->route('/app/:num', Request::METHOD_GET)
-// (function(Request $request, Response $response, $sid) {
-//     return $response->html($sid);
-// });
+function clorx2($callback) {
+    /** @var RouteFactory $rf */
+    return function () use ($callback) {
+        print_r($callback);
+        return $callback;
+    };
+}
+
+function clorx(Response $response) {
+    return $response->setCharset('GBK');
+}
+$app->route('/app/:num', Request::METHOD_GET)
+->decorators(clorx)
+(function(Request $request, Response $response, $sid) {
+    return $response->html($sid);
+});
 
 
 $app->start();

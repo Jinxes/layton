@@ -117,6 +117,7 @@ class App
                     throw new MethodNotAllowedException();
                 }
 
+                // TODO add decorators
                 $middleWares = new MiddleWares($this->getMiddleWareFromRoute($route));
                 if (\is_string($route->callback)) {
                     if (strpos($route->callback, $routeMethodSep) !== false) {
