@@ -21,9 +21,8 @@ class Test1
 
 class Midtest
 {
-    public function handle(Request $request, Response $response, $next, $args)
+    public function handle(Request $request, Response $response, $next)
     {
-        print_r($args);
         $request->withAttribute('a', 1);
         $next();
     }
@@ -47,11 +46,11 @@ class Ctrl
     /**
      * @Target({"METHOD","PROPERTY"})
      */
-    public function test(Response $response, $id)
+    public function test(Request $request, Response $response, $name)
     {
-        //$request->getParams()
+        // $request->getParams()
         return $response->template('temp', [
-            'mess' => 'Hello World'
+            'mess' => $name
         ]);
     }
 }
@@ -70,12 +69,6 @@ $app = new App();
 //     return $response->html('hello world');
 // });
 
-function w1($callback) {
-    return function(Request $request, Response $response, $id) {
-        $callback($id);
-        return $response->json([$id]);
-    };
-}
 
 // $app->route('/app/:num', 'GET')->wrappers([
 //     w1::class
@@ -108,18 +101,17 @@ function w1($callback) {
  * 将返回的数据用 json 格式输出
  */
 function jsonDecorator($callback) {
-    return function(Response $response, $id, $name) use ($callback) {
-        $data = $callback($id);
+    return function(Request $request, Response $response) use ($callback) {
+        $name = $request->getAttribute('name');
+        $data = $callback($name);
         return $response->json($data);
     };
-}
+};
 
 $app->route('/app/<id>/<name>', 'GET')->wrappers([
     jsonDecorator::class
 ])
-(function($id) {
-    return ['id' => $id];
-});
+(Ctrl::class, 'test');
 
 
 $app->start();

@@ -58,22 +58,13 @@ class MiddleWares implements Iterator
         $this->nextFunc = $nextFunc;
     }
 
-    public function withNextArgs($next, $args)
+    public function withNextArgs($next)
     {
-        $this->args = $args;
-        $nextArg = [$args];
-        array_unshift($nextArg, $next);
-        // print_r($args);exit();
-        $this->nextArgs = $nextArg;
+        $this->nextArgs = [$next];
     }
 
     public function getNextArgs()
     {
         return $this->nextArgs;
-    }
-
-    public function getOriginArgs()
-    {
-        return $this->args;
     }
 }

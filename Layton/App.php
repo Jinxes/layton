@@ -10,6 +10,12 @@ use Layton\Services\DependentService;
 use Layton\Library\Standard\ArrayBucket;
 use Layton\Library\Http\Request;
 use Layton\Library\Http\Response;
+use Layton\Struct\DependentStruct;
+
+class A
+{
+    public $a = 1;
+}
 
 /**
  * @access public 
@@ -109,7 +115,7 @@ class App
      */
     public function start()
     {
-        $routeMethodSep = $this->container->config->get('Route-Method-Sep', '>');
+        $routeMethodSep = '>';
         $storage = $this->routeService->getStorage();
         foreach ($storage as $match => $route) {
             if (($matched = $this->matchHttpRequest($match)) !== false) {
@@ -124,11 +130,11 @@ class App
                 if (\is_string($route->callback)) {
                     if (strpos($route->callback, $routeMethodSep) !== false) {
                         list($controller, $method) = explode($routeMethodSep, $route->callback);
-                        return $this->connectMiddlewares($controller, $method, $matched, $middleWares, $decorators);
+                        return $this->connectMiddlewares($controller, $method, $middleWares, $decorators);
                     }
                 }
 
-                return $this->connectMiddlewares($route->callback, '__invoke', $matched, $middleWares, $decorators);
+                return $this->connectMiddlewares($route->callback, '__invoke', $middleWares, $decorators);
             }
         }
 
@@ -146,8 +152,8 @@ class App
      */
     public function getInvokeMiddlewareNext($controller, MiddleWares $middleWares, $decorators)
     {
-        return $this->nextClosure($middleWares, function() use ($controller, $middleWares, $decorators) {
-            return $this->injectionClosure($controller, $middleWares->getOriginArgs(), $decorators);
+        return $this->nextClosure($middleWares, function() use ($controller, $decorators) {
+            return $this->injectionClosure($controller, $decorators);
         });
     }
 
@@ -163,8 +169,8 @@ class App
      */
     public function getControllerMiddlewareNext($controller, $method, MiddleWares $middleWares, $decorators)
     {
-        return $this->nextClosure($middleWares, function() use ($controller, $method, $middleWares, $decorators) {
-            return $this->injectionClass($controller, $method, $middleWares->getOriginArgs(), $decorators);
+        return $this->nextClosure($middleWares, function() use ($controller, $method, $decorators) {
+            return $this->injectionClass($controller, $method, [], $decorators);
         });
     }
 
@@ -173,10 +179,9 @@ class App
      * 
      * @param callback $controller
      * @param string $method
-     * @param array $args
      * @param MiddleWares $middleWares
      */
-    public function connectMiddlewares($controller, $method, $args, MiddleWares $middleWares, $decorators = [])
+    public function connectMiddlewares($controller, $method, MiddleWares $middleWares, $decorators = [])
     {
         $isClosure = is_callable($controller);
         if ($middleWares->valid()) {
@@ -185,12 +190,12 @@ class App
             } else {
                 $next = $this->getControllerMiddlewareNext($controller, $method, $middleWares, $decorators);
             }
-            $middleWares->withNextArgs($next, $args);
+            $middleWares->withNextArgs($next);
             $response = $this->injectionClass($middleWares->current(), 'handle', $middleWares->getNextArgs());
         } else {
             $response = $isClosure ?
-                $this->injectionClosure($controller, $args, $decorators) :
-                $this->injectionClass($controller, $method, $args, $decorators);
+                $this->injectionClosure($controller, $decorators) :
+                $this->injectionClass($controller, $method, [], $decorators);
         }
 
         if ($response instanceof Response) {
@@ -199,17 +204,19 @@ class App
     }
 
     /**
-     * Injection Types for Closure
+     * Injection Types for Closure.
      * 
      * @param callback $controller
      * @param array $args
      * 
      * @return mixed
      */
-    public function injectionClosure($controller, $args, $decorators)
+    public function injectionClosure($controller, $decorators, $args = [])
     {
         foreach ($decorators as $decorator) {
-            $controller = $decorator($controller);
+            $controller = $decorator(
+                $this->closureWrapper($controller)
+            );
         }
         return $this->container->dependentService->call($controller, $args);
     }
@@ -223,15 +230,33 @@ class App
      * 
      * @return mixed
      */
-    public function injectionClass($controller, $method, $args, $decorators)
+    public function injectionClass($controller, $method, $args, $decorators = [])
     {
         $dependentService = $this->container->dependentService;
+        /** @var DependentStruct $refClass */
         $refClass = $dependentService->newClass($controller);
         $closure = $refClass->getClosure($method);
         foreach ($decorators as $decorator) {
-            $closure = $decorator($closure);
+            $closure = $decorator(
+                $this->closureWrapper($closure)
+            );
         }
-        return $refClass->injectionByClosure($closure, $method, $args);
+        return $dependentService->call($closure, $args);
+    }
+
+    /**
+     * Get a decorator for decorators callback arg.
+     * 
+     * @param callback $controller
+     * 
+     * @return callback
+     */
+    public function closureWrapper($closure)
+    {
+        $dependentService = $this->container->dependentService;
+        return function (...$args) use ($closure, $dependentService) {
+            return $dependentService->call($closure, $args);
+        };
     }
 
     /**
@@ -362,12 +387,9 @@ class App
      */
     private function replacePatternKeyword($pattern)
     {
-        // print_r($pattern);
         $customKeyword = [
             '/\//' => '\\/',
-            '/\<(.*?)\>/' => '(.*?)',
-            // ':num' => '([0-9]+)',
-            // ':any' => '(.*+)'
+            '/\<(.*?)\>/' => '(.*?)'
         ];
         return preg_replace(\array_keys($customKeyword), \array_values($customKeyword), $pattern);
     }
