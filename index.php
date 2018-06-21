@@ -39,8 +39,14 @@ class Midtest2
     }
 }
 
+/**
+ * @Annotation
+ */
 class Ctrl
 {
+    /**
+     * @Target({"METHOD","PROPERTY"})
+     */
     public function test(Response $response, $id)
     {
         //$request->getParams()
@@ -64,33 +70,43 @@ $app = new App();
 //     return $response->html('hello world');
 // });
 
-// $app->route('/app/:num', 'GET')(Ctrl::class, 'test');
-
-$app->route('/app', function($route) {
-
-    $route('/kiss/:num', ['GET'])
-    (function(Request $request, Response $response, $id) {
-        $attr = $request->getAttributes();
-        return $response->json($attr);
-    })->middleWare(Midtest::class);
-
-});
-
-function clorx2($callback) {
-    /** @var RouteFactory $rf */
-    return function () use ($callback) {
-        print_r($callback);
-        return $callback;
-    };
+function w1($callback) {
+    echo 111;
+    return $callback;
 }
 
-function clorx(Response $response) {
-    return $response->setCharset('GBK');
-}
-$app->route('/app/:num', Request::METHOD_GET)
-->decorators(clorx)
-(function(Request $request, Response $response, $sid) {
-    return $response->html($sid);
+// $app->route('/app/:num', 'GET')->wrappers([
+//     w1::class
+// ])
+// (Ctrl::class, 'test');
+
+// $app->route('/app', function($route) {
+
+//     $route('/kiss/:num', ['GET'])
+//     (function(Request $request, Response $response, $id) {
+//         $attr = $request->getAttributes();
+//         return $response->json($attr);
+//     })->middleWare(Midtest::class);
+
+// });
+
+
+// function decorator1($callback) {
+//     return $callback;
+// }
+
+// function decorator2($callback) {
+//     return function (Request $request, Response $response, $id) use ($callback) {
+//         $data = $callback($id);
+//         return $response->json($data);
+//     };
+// }
+
+$app->route('/app/:num', 'GET')->wrappers([
+    w1::class
+])
+(function(Request $request, Response $response, $id) {
+    return $response->json([$id]);
 });
 
 

@@ -117,16 +117,17 @@ class App
                     throw new MethodNotAllowedException();
                 }
 
-                // TODO add decorators
                 $middleWares = new MiddleWares($this->getMiddleWareFromRoute($route));
+                $decorators = $route->decorators;
+
                 if (\is_string($route->callback)) {
                     if (strpos($route->callback, $routeMethodSep) !== false) {
                         list($controller, $method) = explode($routeMethodSep, $route->callback);
-                        return $this->connectMiddlewares($controller, $method, $matched, $middleWares);
+                        return $this->connectMiddlewares($controller, $method, $matched, $middleWares, $decorators);
                     }
                 }
 
-                return $this->connectMiddlewares($route->callback, '__invoke', $matched, $middleWares);
+                return $this->connectMiddlewares($route->callback, '__invoke', $matched, $middleWares, $decorators);
             }
         }
 
@@ -142,10 +143,10 @@ class App
      * 
      * @return callback
      */
-    public function getInvokeMiddlewareNext($controller, MiddleWares $middleWares)
+    public function getInvokeMiddlewareNext($controller, MiddleWares $middleWares, $decorators)
     {
-        return $this->nextClosure($middleWares, function() use ($controller, $middleWares) {
-            return $this->injectionClosure($controller, $middleWares->getOriginArgs());
+        return $this->nextClosure($middleWares, function() use ($controller, $middleWares, $decorators) {
+            return $this->injectionClosure($controller, $middleWares->getOriginArgs(), $decorators);
         });
     }
 
@@ -159,10 +160,10 @@ class App
      * 
      * @return callback
      */
-    public function getControllerMiddlewareNext($controller, $method, MiddleWares $middleWares)
+    public function getControllerMiddlewareNext($controller, $method, MiddleWares $middleWares, $decorators)
     {
-        return $this->nextClosure($middleWares, function() use ($controller, $method, $middleWares) {
-            return $this->injectionClass($controller, $method, $middleWares->getOriginArgs());
+        return $this->nextClosure($middleWares, function() use ($controller, $method, $middleWares, $decorators) {
+            return $this->injectionClass($controller, $method, $middleWares->getOriginArgs(), $decorators);
         });
     }
 
@@ -174,21 +175,21 @@ class App
      * @param array $args
      * @param MiddleWares $middleWares
      */
-    public function connectMiddlewares($controller, $method, $args, MiddleWares $middleWares)
+    public function connectMiddlewares($controller, $method, $args, MiddleWares $middleWares, $decorators = [])
     {
         $isClosure = is_callable($controller);
         if ($middleWares->valid()) {
             if ($isClosure) {
-                $next = $this->getInvokeMiddlewareNext($controller, $middleWares);
+                $next = $this->getInvokeMiddlewareNext($controller, $middleWares, $decorators);
             } else {
-                $next = $this->getControllerMiddlewareNext($controller, $method, $middleWares);
+                $next = $this->getControllerMiddlewareNext($controller, $method, $middleWares, $decorators);
             }
             $middleWares->withNextArgs($next, $args);
             $response = $this->injectionClass($middleWares->current(), 'handle', $middleWares->getNextArgs());
         } else {
             $response = $isClosure ?
-                $this->injectionClosure($controller, $args) :
-                $this->injectionClass($controller, $method, $args);
+                $this->injectionClosure($controller, $args, $decorators) :
+                $this->injectionClass($controller, $method, $args, $decorators);
         }
 
         if ($response instanceof Response) {
@@ -204,8 +205,11 @@ class App
      * 
      * @return mixed
      */
-    public function injectionClosure($controller, $args)
+    public function injectionClosure($controller, $args, $decorators)
     {
+        foreach ($decorators as $decorator) {
+            $controller = $decorator($controller);
+        }
         return $this->container->dependentService->call($controller, $args);
     }
 
@@ -218,11 +222,15 @@ class App
      * 
      * @return mixed
      */
-    public function injectionClass($controller, $method, $args)
+    public function injectionClass($controller, $method, $args, $decorators)
     {
-        return $this->container->dependentService
-            ->newClass($controller)
-            ->injection($method, $args);
+        $dependentService = $this->container->dependentService;
+        $refClass = $dependentService->newClass($controller);
+        $closure = $refClass->getClosure($method);
+        foreach ($decorators as $decorator) {
+            $closure = $decorator($closure);
+        }
+        return $refClass->injectionByClosure($closure, $method, $args);
     }
 
     /**

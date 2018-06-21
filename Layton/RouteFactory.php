@@ -26,10 +26,11 @@ class RouteFactory
             $route = $this->routeService->attach($this->methods, $this->match, $controller . '>' . $method);
         }
         $route->setGroup($this->group);
+        $route->wrappers($this->decorators);
         return $route;
     }
 
-    public function decorators(...$decorators)
+    public function wrappers($decorators)
     {
         $this->decorators = $decorators;
         return $this;

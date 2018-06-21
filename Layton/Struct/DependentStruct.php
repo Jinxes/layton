@@ -4,13 +4,15 @@ namespace Layton\Struct;
 use ReflectionClass;
 use Layton\Container;
 
+/**
+ * @property array singleton
+ * @property ReflectionClass reflection
+ */
 class DependentStruct
 {
-    /** @var array */
-    private $singletons;
+    private $singleton;
 
-    /** @var array */
-    private $reflections;
+    private $reflection;
 
     /**
      * @param Container $container
@@ -26,10 +28,27 @@ class DependentStruct
             throw new \Exception('Can\'t instantiate ' . $className);
         }
 
-        $params = $this->getParams($reflectionClass, '__construct');
-        $this->singletons = $reflectionClass->newInstanceArgs($params);
-        $this->singletons->container = $container;
-        $this->reflections = $reflectionClass;
+        $params = $this->dependentService->getParams($reflectionClass, '__construct');
+        $this->singleton = $reflectionClass->newInstanceArgs($params);
+        $this->singleton->container = $container;
+        $this->reflection = $reflectionClass;
+    }
+
+    /**
+     * Get ReflectionMethod from ReflectionClass
+     * 
+     * @param string $name
+     * 
+     * @return ReflectionMethod
+     */
+    public function getMethod($name)
+    {
+        return $this->reflection->getMethod($name);
+    }
+
+    public function getClosure($method)
+    {
+        return $this->getMethod($method)->getClosure($this->getInstance());
     }
 
     /**
@@ -39,7 +58,7 @@ class DependentStruct
      */
     public function getInstance()
     {
-        return $this->singletons;
+        return $this->singleton;
     }
 
     /**
@@ -52,36 +71,29 @@ class DependentStruct
      */
     public function injection($method, $inherentParams=[])
     {
-        if (! $this->reflections->hasMethod($method)) {
+        if (! $this->reflection->hasMethod($method)) {
             throw new \InvalidArgumentException('Method not exists.');
         }
-        $instances = $this->getParams($this->reflections, $method, count($inherentParams));
+        $instances = $this->dependentService->getParams($this->reflection, $method, count($inherentParams));
         $params = array_merge($instances, $inherentParams);
-        return call_user_func_array([$this->singletons, $method], $params);
+        return call_user_func_array([$this->singleton, $method], $params);
     }
 
     /**
-     * instantiation param list of method and save
-     * 
-     * @param ReflectionClass $refClass
      * @param string $method
-     * @param int inherentNumber
+     * @param array $inherentParams
      * 
-     * @return array
+     * @return mixed
+     * 
+     * @throws \InvalidArgumentException
      */
-    private function getParams($reflectionClass, $method, $inherentNumber = 0)
+    public function injectionByClosure($closure, $method, $inherentParams=[])
     {
-        $instances = [];
-        if (!$reflectionClass->hasMethod($method)) {
-            return $instances;
+        if (! ($closure instanceof \Closure)) {
+            throw new \InvalidArgumentException('Method 0 must be a Closure.');
         }
-
-        $reflection = $reflectionClass->getMethod($method);
-        $reflectionParameters = $this->dependentService->getReflectionParameters($reflection, $inherentNumber);
-
-        foreach($reflectionParameters as $reflectionParameter) {
-            $instances[] = $this->dependentService->getDependentByParameter($reflectionParameter)->getInstance();
-        }
-        return $instances;
+        $instances = $this->dependentService->getParams($this->reflection, $method, count($inherentParams));
+        $params = array_merge($instances, $inherentParams);
+        return call_user_func_array($closure, $params);
     }
 }

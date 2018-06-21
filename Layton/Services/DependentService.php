@@ -99,4 +99,29 @@ class DependentService extends LaytonService
         $reflectionParameters = $reflection->getParameters();
         return array_slice($reflectionParameters, 0, count($reflectionParameters) - $inherentNumber);
     }
+
+    /**
+     * instantiation param list of method and save
+     * 
+     * @param ReflectionClass $refClass
+     * @param string $method
+     * @param int inherentNumber
+     * 
+     * @return array
+     */
+    public function getParams($reflectionClass, $method, $inherentNumber = 0)
+    {
+        $instances = [];
+        if (!$reflectionClass->hasMethod($method)) {
+            return $instances;
+        }
+
+        $reflection = $reflectionClass->getMethod($method);
+        $reflectionParameters = $this->getReflectionParameters($reflection, $inherentNumber);
+
+        foreach($reflectionParameters as $reflectionParameter) {
+            $instances[] = $this->getDependentByParameter($reflectionParameter)->getInstance();
+        }
+        return $instances;
+    }
 }
