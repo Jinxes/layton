@@ -235,13 +235,17 @@ class App
         $dependentService = $this->container->dependentService;
         /** @var DependentStruct $refClass */
         $refClass = $dependentService->newClass($controller);
-        $closure = $refClass->getClosure($method);
-        foreach ($decorators as $decorator) {
-            $closure = $decorator(
-                $this->closureWrapper($closure)
-            );
+        if (empty($decorators)) {
+            return $refClass->injection($method, $args);
+        } else {
+            $closure = $refClass->getClosure($method);
+            foreach ($decorators as $decorator) {
+                $closure = $decorator(
+                    $this->closureWrapper($closure)
+                );
+            }
+            return $dependentService->call($closure, $args);
         }
-        return $dependentService->call($closure, $args);
     }
 
     /**
@@ -255,6 +259,7 @@ class App
     {
         $dependentService = $this->container->dependentService;
         return function (...$args) use ($closure, $dependentService) {
+            // $closure = \Closure::bind($closure, new \Ctrl(), \Ctrl::class);
             return $dependentService->call($closure, $args);
         };
     }

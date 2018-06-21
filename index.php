@@ -43,12 +43,9 @@ class Midtest2
  */
 class Ctrl
 {
-    /**
-     * @Target({"METHOD","PROPERTY"})
-     */
     public function test(Request $request, Response $response, $name)
     {
-        // $request->getParams()
+        // print_r($that);
         return $response->template('temp', [
             'mess' => $name
         ]);
@@ -58,49 +55,10 @@ class Ctrl
 
 $app = new App();
 
-// $app->get('/api/user/:num', Ctrl::class . '>test')->middleWare(Midtest2::class);
-
-// $app->get('/', function (Request $request, Response $response) {
-//     return $response->html('hello world');
-// });
-
-// $app->route('/app', 'GET')
-// (function(Request $request, Response $response) {
-//     return $response->html('hello world');
-// });
-
-
-// $app->route('/app/:num', 'GET')->wrappers([
-//     w1::class
-// ])
-// (Ctrl::class, 'test');
-
-// $app->route('/app', function($route) {
-
-//     $route('/kiss/:num', ['GET'])
-//     (function(Request $request, Response $response, $id) {
-//         $attr = $request->getAttributes();
-//         return $response->json($attr);
-//     })->middleWare(Midtest::class);
-
-// });
-
-
-// function decorator1($callback) {
-//     return $callback;
-// }
-
-// function decorator2($callback) {
-//     return function (Request $request, Response $response, $id) use ($callback) {
-//         $data = $callback($id);
-//         return $response->json($data);
-//     };
-// }
-
 /**
  * 将返回的数据用 json 格式输出
  */
-function jsonDecorator($callback) {
+$jsonDecorator = static function($callback) {
     return function(Request $request, Response $response) use ($callback) {
         $name = $request->getAttribute('name');
         $data = $callback($name);
@@ -109,7 +67,7 @@ function jsonDecorator($callback) {
 };
 
 $app->route('/app/<id>/<name>', 'GET')->wrappers([
-    jsonDecorator::class
+    $jsonDecorator
 ])
 (Ctrl::class, 'test');
 
