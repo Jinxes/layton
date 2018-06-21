@@ -55,5 +55,6 @@ class Route implements RouteConfigureInterface
     public function wrappers($decorators)
     {
         $this->decorators = $decorators;
+        return $this;
     }
 }

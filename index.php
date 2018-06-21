@@ -71,8 +71,10 @@ $app = new App();
 // });
 
 function w1($callback) {
-    echo 111;
-    return $callback;
+    return function(Request $request, Response $response, $id) {
+        $callback($id);
+        return $response->json([$id]);
+    };
 }
 
 // $app->route('/app/:num', 'GET')->wrappers([
@@ -102,11 +104,21 @@ function w1($callback) {
 //     };
 // }
 
+/**
+ * 将返回的数据用 json 格式输出
+ */
+function jsonDecorator($callback) {
+    return function(Response $response, $id) use ($callback) {
+        $data = $callback($id);
+        return $response->json($data);
+    };
+}
+
 $app->route('/app/:num', 'GET')->wrappers([
-    w1::class
+    jsonDecorator::class
 ])
-(function(Request $request, Response $response, $id) {
-    return $response->json([$id]);
+(function($id) {
+    return ['id' => $id];
 });
 
 
