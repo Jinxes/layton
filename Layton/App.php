@@ -116,6 +116,7 @@ class App
                 if (!in_array($this->request->getMethod(), $route->methods)) {
                     throw new MethodNotAllowedException();
                 }
+                $this->request->withAttributes($matched);
 
                 $middleWares = new MiddleWares($this->getMiddleWareFromRoute($route));
                 $decorators = $route->decorators;
@@ -315,14 +316,41 @@ class App
      */
     private function matchHttpRequest($pattern)
     {
+        $pattern = $this->replaceKeyWorlds($pattern);
+        \preg_match_all('/\<(.*?)\>/iu', $pattern, $attrKeys);
+        \array_shift($attrKeys);
+        $attrKeys = $attrKeys[0];
+
         $pathInfo = $this->request->server->get('path-info', '/');
         $pattern = $this->replacePatternKeyword($pattern);
         $regexp = '/^'. $pattern .'\/?$/';
         if (\preg_match($regexp, $pathInfo, $matched)) {
             \array_shift($matched);
-            return $matched;
+            $result = [];
+            foreach ($attrKeys as $num => $key) {
+                $result[$key] = $matched[$num];
+            }
+            return $result;
         }
         return false;
+    }
+
+    private function replaceKeyWorlds($pattern)
+    {
+        $regexKeywords = [
+            '.' => '\\.',
+            '*' => '\\*',
+            '$' => '\\$',
+            '[' => '\\[',
+            ']' => '\\]',
+            '(' => '\\(',
+            ')' => '\\)'
+        ];
+        return str_replace(
+            \array_keys($regexKeywords),
+            \array_values($regexKeywords),
+            $pattern
+        );
     }
 
     /**
@@ -334,28 +362,14 @@ class App
      */
     private function replacePatternKeyword($pattern)
     {
-        $regexKeywords = [
-            '.' => '\\.',
-            '*' => '\\*',
-            '$' => '\\$',
-            '[' => '\\[',
-            ']' => '\\]',
-            '(' => '\\(',
-            ')' => '\\)'
-        ];
-        $pattern = str_replace(
-            \array_keys($regexKeywords),
-            \array_values($regexKeywords),
-            $pattern
-        );
-
+        // print_r($pattern);
         $customKeyword = [
-            '/' => '\\/',
-            ':str' => '([a-zA-Z0-9-_]+)',
-            ':num' => '([0-9]+)',
-            ':any' => '(.*+)'
+            '/\//' => '\\/',
+            '/\<(.*?)\>/' => '(.*?)',
+            // ':num' => '([0-9]+)',
+            // ':any' => '(.*+)'
         ];
-        return str_replace(\array_keys($customKeyword), \array_values($customKeyword), $pattern);
+        return preg_replace(\array_keys($customKeyword), \array_values($customKeyword), $pattern);
     }
 
     /**

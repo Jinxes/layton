@@ -108,13 +108,13 @@ function w1($callback) {
  * 将返回的数据用 json 格式输出
  */
 function jsonDecorator($callback) {
-    return function(Response $response, $id) use ($callback) {
+    return function(Response $response, $id, $name) use ($callback) {
         $data = $callback($id);
         return $response->json($data);
     };
 }
 
-$app->route('/app/:num', 'GET')->wrappers([
+$app->route('/app/<id>/<name>', 'GET')->wrappers([
     jsonDecorator::class
 ])
 (function($id) {
