@@ -11,11 +11,7 @@ use Layton\Library\Standard\ArrayBucket;
 use Layton\Library\Http\Request;
 use Layton\Library\Http\Response;
 use Layton\Struct\DependentStruct;
-
-class A
-{
-    public $a = 1;
-}
+use Layton\Struct\ClosureStruct;
 
 /**
  * @access public 
@@ -65,6 +61,10 @@ class App
 
         $this->container->routeService = function($c) {
             return new RouteService($c);
+        };
+
+        $this->container->closureStruct = function($c) {
+            return new ClosureStruct($c);
         };
 
         $this->routeService = $this->container->routeService;
@@ -153,6 +153,7 @@ class App
     public function getInvokeMiddlewareNext($controller, MiddleWares $middleWares, $decorators)
     {
         return $this->nextClosure($middleWares, function() use ($controller, $decorators) {
+            $controller = $this->closureBinder($controller);
             return $this->injectionClosure($controller, $decorators);
         });
     }
@@ -232,20 +233,19 @@ class App
      */
     public function injectionClass($controller, $method, $args, $decorators = [])
     {
+        /**
+         * @var DependentService $dependentService
+         * @var DependentStruct $refClass
+         */
         $dependentService = $this->container->dependentService;
-        /** @var DependentStruct $refClass */
         $refClass = $dependentService->newClass($controller);
-        if (empty($decorators)) {
-            return $refClass->injection($method, $args);
-        } else {
-            $closure = $refClass->getClosure($method);
-            foreach ($decorators as $decorator) {
-                $closure = $decorator(
-                    $this->closureWrapper($closure)
-                );
-            }
-            return $dependentService->call($closure, $args);
+        $closure = $refClass->getClosure($method);
+        foreach ($decorators as $decorator) {
+            $closure = $decorator(
+                $this->controllerWrapper($closure)
+            );
         }
+        return $dependentService->call($closure, $args);
     }
 
     /**
@@ -259,9 +259,39 @@ class App
     {
         $dependentService = $this->container->dependentService;
         return function (...$args) use ($closure, $dependentService) {
-            // $closure = \Closure::bind($closure, new \Ctrl(), \Ctrl::class);
             return $dependentService->call($closure, $args);
         };
+    }
+
+    /**
+     * Get a decorator for decorators callback arg.
+     * 
+     * @param callback $controller
+     * 
+     * @return callback
+     */
+    public function controllerWrapper($closure)
+    {
+        $dependentService = $this->container->dependentService;
+        return function (...$args) use ($closure, $dependentService) {
+            return $dependentService->call($closure, $args);
+        };
+    }
+
+    /**
+     * Bind ClosureStruct this to $closure.
+     * 
+     * @param \Closure $closure
+     * 
+     * @return \Closure new closure
+     */
+    public function closureBinder($closure)
+    {
+        return \Closure::bind(
+            $closure,
+            $this->container->closureStruct,
+            ClosureStruct::class
+        );
     }
 
     /**

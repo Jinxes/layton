@@ -59,8 +59,8 @@ class DependentService extends LaytonService
                 ->getInstance();
         }
         $params = array_merge($dependentInstances, $inherentParams);
-
-        return $reflectionFunction->invokeArgs($params);
+        $closure = $reflectionFunction->getClosure();
+        return call_user_func_array($closure, $params);
     }
 
     /**
