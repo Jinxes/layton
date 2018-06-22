@@ -60,23 +60,36 @@ $app = new App();
 function jsonDecorator($callback) {
     return function(Request $request, Response $response) use ($callback) {
         $name = $request->getAttribute('name');
-        $data = $callback($name);
+        // print_r($this);
+        $data = $callback();
         return $response->json($data);
     };
 }
 
-$app->route('/app/<id>/<name>', 'GET')->wrappers([
-    jsonDecorator::class
-])
-(Ctrl::class, 'test');
+function jsonDecorator2($callback) {
+    return function(Request $request, Response $response) use ($callback) {
+        $name = $request->getAttribute('name');
+        $data = $callback();
+        return $response->json($data);
+    };
+}
 
-// $app->route('/app/<id>/<name>', 'GET')->wrappers([
-//     jsonDecorator::class
-// ])
-// (function(Request $request, Response $response, $name) {
-//     $name = $request->getAttribute('name');
-//     return ['name' => $name];
-// })->middleWare(Midtest::class);
+// $app->route('/app/<id>/<name>', 'GET')->wrappers([jsonDecorator::class])
+// (Ctrl::class, 'test');
+
+$app->route('/app/<id>/<name>', 'GET') ([
+    jsonDecorator::class, jsonDecorator2::class
+]) (function(Request $request, Response $response) {
+    $name = $request->getAttribute('name');
+    return ['name' => $name];
+})->middleWare(Midtest::class);
+
+// $app->get('/app/<id>/<name>', function(Request $request, Response $response) {
+//     print_r($this);
+//     return ['name' => '$name'];
+// })
+// ->middleWare(Midtest::class)
+// ->wrappers([jsonDecorator::class, jsonDecorator2::class]);
 
 
 $app->start();

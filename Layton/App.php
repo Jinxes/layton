@@ -11,6 +11,7 @@ use Layton\Library\Standard\ArrayBucket;
 use Layton\Library\Http\Request;
 use Layton\Library\Http\Response;
 use Layton\Struct\DependentStruct;
+use Layton\Struct\ClosureStruct;
 
 /**
  * @access public 
@@ -60,6 +61,10 @@ class App
 
         $this->container->routeService = function($c) {
             return new RouteService($c);
+        };
+
+        $this->container->closureStruct = function($c) {
+            return new ClosureStruct($c);
         };
 
         $this->routeService = $this->container->routeService;
@@ -148,6 +153,7 @@ class App
     public function getInvokeMiddlewareNext($controller, MiddleWares $middleWares, $decorators)
     {
         return $this->nextClosure($middleWares, function() use ($controller, $decorators) {
+            $controller = $this->closureBinder($controller);
             return $this->injectionClosure($controller, $decorators);
         });
     }
@@ -253,7 +259,6 @@ class App
     {
         $dependentService = $this->container->dependentService;
         return function (...$args) use ($closure, $dependentService) {
-            $closure = \Closure::bind($closure, $this);
             return $dependentService->call($closure, $args);
         };
     }
@@ -271,6 +276,22 @@ class App
         return function (...$args) use ($closure, $dependentService) {
             return $dependentService->call($closure, $args);
         };
+    }
+
+    /**
+     * Bind ClosureStruct this to $closure.
+     * 
+     * @param \Closure $closure
+     * 
+     * @return \Closure new closure
+     */
+    public function closureBinder($closure)
+    {
+        return \Closure::bind(
+            $closure,
+            $this->container->closureStruct,
+            ClosureStruct::class
+        );
     }
 
     /**
