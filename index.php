@@ -51,6 +51,14 @@ class Ctrl
     }
 }
 
+class Controller
+{
+    public function test()
+    {
+        echo 'Hello World';
+    }
+}
+
 
 $app = new App();
 
@@ -58,31 +66,41 @@ $app = new App();
  * 将返回的数据用 json 格式输出
  */
 function jsonDecorator($callback) {
-    return function(Request $request, Response $response) use ($callback) {
-        $name = $request->getAttribute('name');
-        // print_r($this);
+    return function(Response $response) use ($callback) {
         $data = $callback();
         return $response->json($data);
     };
 }
 
 function jsonDecorator2($callback) {
-    return function(Request $request, Response $response) use ($callback) {
-        $name = $request->getAttribute('name');
-        $data = $callback();
-        return $response->json($data);
+    return function() use ($callback) {
+        $name = 'hello';
+        return $callback($name);
     };
 }
+
+$app->get('/app/<name>', function(Request $request, Response $response) {
+    $name = $request->getAttribute('name');
+    return $response->html($name);
+});
+
+// $app->route('/app', ['GET'])
+// (function() {
+//     return ['hello' => 'world'];
+// })->wrappers([jsonDecorator::class]);
 
 // $app->route('/app/<id>/<name>', 'GET')->wrappers([jsonDecorator::class])
 // (Ctrl::class, 'test');
 
-$app->route('/app/<id>/<name>', 'GET') ([
-    jsonDecorator::class, jsonDecorator2::class
-]) (function(Request $request, Response $response) {
-    $name = $request->getAttribute('name');
-    return ['name' => $name];
-})->middleWare(Midtest::class);
+// $app->route('/app', 'GET')('Controller', 'test');
+
+$app->group('/app', function($route) {
+    $route->group('/hello', function($route) {
+        $route->get('/world', function() {
+            echo 'Hello World';
+        });
+    });
+});
 
 // $app->get('/app/<id>/<name>', function(Request $request, Response $response) {
 //     print_r($this);
@@ -90,6 +108,9 @@ $app->route('/app/<id>/<name>', 'GET') ([
 // })
 // ->middleWare(Midtest::class)
 // ->wrappers([jsonDecorator::class, jsonDecorator2::class]);
+
+
+// $app->get('/app', 'Controller>test');
 
 
 $app->start();
