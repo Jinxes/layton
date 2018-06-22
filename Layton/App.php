@@ -12,11 +12,6 @@ use Layton\Library\Http\Request;
 use Layton\Library\Http\Response;
 use Layton\Struct\DependentStruct;
 
-class A
-{
-    public $a = 1;
-}
-
 /**
  * @access public 
  * @property Container $container
@@ -232,20 +227,19 @@ class App
      */
     public function injectionClass($controller, $method, $args, $decorators = [])
     {
+        /**
+         * @var DependentService $dependentService
+         * @var DependentStruct $refClass
+         */
         $dependentService = $this->container->dependentService;
-        /** @var DependentStruct $refClass */
         $refClass = $dependentService->newClass($controller);
-        if (empty($decorators)) {
-            return $refClass->injection($method, $args);
-        } else {
-            $closure = $refClass->getClosure($method);
-            foreach ($decorators as $decorator) {
-                $closure = $decorator(
-                    $this->closureWrapper($closure)
-                );
-            }
-            return $dependentService->call($closure, $args);
+        $closure = $refClass->getClosure($method);
+        foreach ($decorators as $decorator) {
+            $closure = $decorator(
+                $this->controllerWrapper($closure)
+            );
         }
+        return $dependentService->call($closure, $args);
     }
 
     /**
@@ -259,7 +253,22 @@ class App
     {
         $dependentService = $this->container->dependentService;
         return function (...$args) use ($closure, $dependentService) {
-            // $closure = \Closure::bind($closure, new \Ctrl(), \Ctrl::class);
+            $closure = \Closure::bind($closure, $this);
+            return $dependentService->call($closure, $args);
+        };
+    }
+
+    /**
+     * Get a decorator for decorators callback arg.
+     * 
+     * @param callback $controller
+     * 
+     * @return callback
+     */
+    public function controllerWrapper($closure)
+    {
+        $dependentService = $this->container->dependentService;
+        return function (...$args) use ($closure, $dependentService) {
             return $dependentService->call($closure, $args);
         };
     }

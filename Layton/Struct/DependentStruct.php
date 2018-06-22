@@ -46,6 +46,13 @@ class DependentStruct
         return $this->reflection->getMethod($name);
     }
 
+    /**
+     * Get the Closure of method.
+     * 
+     * @param string $method
+     * 
+     * @return \Closure
+     */
     public function getClosure($method)
     {
         return $this->getMethod($method)->getClosure($this->getInstance());
@@ -76,10 +83,14 @@ class DependentStruct
         }
         $instances = $this->dependentService->getParams($this->reflection, $method, count($inherentParams));
         $params = array_merge($instances, $inherentParams);
-        return call_user_func_array([$this->singleton, $method], $params);
+        $closure = $this->getClosure($method);
+        return call_user_func_array($closure, $params);
     }
 
     /**
+     * Injection a Closure
+     * 
+     * @param \Closure $closure
      * @param string $method
      * @param array $inherentParams
      * 

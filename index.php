@@ -30,7 +30,7 @@ class Midtest
 
 class Midtest2
 {
-    public function handle(Request $request, $next, $id)
+    public function handle(Request $request, $next)
     {
         $request->withAttribute('b', 2);
         // $request->withQueryParam('c', 'Hello World');
@@ -45,7 +45,6 @@ class Ctrl
 {
     public function test(Request $request, Response $response, $name)
     {
-        // print_r($that);
         return $response->template('temp', [
             'mess' => $name
         ]);
@@ -58,18 +57,26 @@ $app = new App();
 /**
  * 将返回的数据用 json 格式输出
  */
-$jsonDecorator = static function($callback) {
+function jsonDecorator($callback) {
     return function(Request $request, Response $response) use ($callback) {
         $name = $request->getAttribute('name');
         $data = $callback($name);
         return $response->json($data);
     };
-};
+}
 
 $app->route('/app/<id>/<name>', 'GET')->wrappers([
-    $jsonDecorator
+    jsonDecorator::class
 ])
 (Ctrl::class, 'test');
+
+// $app->route('/app/<id>/<name>', 'GET')->wrappers([
+//     jsonDecorator::class
+// ])
+// (function(Request $request, Response $response, $name) {
+//     $name = $request->getAttribute('name');
+//     return ['name' => $name];
+// })->middleWare(Midtest::class);
 
 
 $app->start();
