@@ -2,6 +2,7 @@
 namespace Layton\Exception;
 
 use Psr\Container\NotFoundExceptionInterface;
+use Layton\Library\Http\Response;
 
 /**
  * Abort 404 http code by default.

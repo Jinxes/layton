@@ -79,10 +79,10 @@ function jsonDecorator2($callback) {
     };
 }
 
-$app->get('/app/<name>', function(Request $request, Response $response) {
-    $name = $request->getAttribute('name');
-    return $response->html($name);
-});
+// $app->get('/app/<name>', function(Request $request, Response $response) {
+//     $name = $request->getAttribute('name');
+//     return $response->html($name);
+// });
 
 // $app->route('/app', ['GET'])
 // (function() {
@@ -94,23 +94,34 @@ $app->get('/app/<name>', function(Request $request, Response $response) {
 
 // $app->route('/app', 'GET')('Controller', 'test');
 
-$app->group('/app', function($route) {
-    $route->group('/hello', function($route) {
-        $route->get('/world', function() {
-            echo 'Hello World';
-        });
-    });
-});
+// $app->group('/app', function($route) {
+//     $route->group('/hello', function($route) {
+//         $route->get('/world', function() {
+//             echo 'Hello World';
+//         });
+//     });
+// });
 
-// $app->get('/app/<id>/<name>', function(Request $request, Response $response) {
-//     print_r($this);
-//     return ['name' => '$name'];
-// })
+$app->get('/app/<id>/<name>', function(Request $request, Response $response) {
+    $id = $request->getAttribute('id');
+    $name = $request->getAttribute('name');
+    return $response->json([
+        'id' => $id,
+        'name' => $name
+    ]);
+});
 // ->middleWare(Midtest::class)
 // ->wrappers([jsonDecorator::class, jsonDecorator2::class]);
 
+// $app->container->text = 'test';
 
-// $app->get('/app', 'Controller>test');
+// $app->get('/app', function(Response $response) {
+//     $text = $this->container->text;
+//     return $response->html($text);
+// });
+
+
+$app->get('/app', 'Controller>test');
 
 
 $app->start();

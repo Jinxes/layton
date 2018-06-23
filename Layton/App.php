@@ -194,9 +194,12 @@ class App
             $middleWares->withNextArgs($next);
             $response = $this->injectionClass($middleWares->current(), 'handle', $middleWares->getNextArgs());
         } else {
-            $response = $isClosure ?
-                $this->injectionClosure($controller, $decorators) :
-                $this->injectionClass($controller, $method, [], $decorators);
+            if ($isClosure) {
+                $controller = $this->closureBinder($controller);
+                $response = $this->injectionClosure($controller, $decorators);
+            } else {
+                $response = $this->injectionClass($controller, $method, [], $decorators);
+            }
         }
 
         if ($response instanceof Response) {
