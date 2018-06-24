@@ -72,7 +72,7 @@ class DependentService extends LaytonService
      * 
      * @throw \BadMethodCallException
      */
-    public function getDependentByParameter(ReflectionParameter $reflectionParameter)
+    protected function getDependentByParameter(ReflectionParameter $reflectionParameter)
     {
         $reflectionClass = $reflectionParameter->getClass();
         if (is_null($reflectionClass)) {
@@ -94,7 +94,7 @@ class DependentService extends LaytonService
      * 
      * @return ReflectionParameter[]
      */
-    public function getReflectionParameters($reflection, $inherentNumber)
+    protected function getReflectionParameters($reflection, $inherentNumber)
     {
         $reflectionParameters = $reflection->getParameters();
         return array_slice($reflectionParameters, 0, count($reflectionParameters) - $inherentNumber);

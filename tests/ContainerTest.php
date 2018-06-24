@@ -14,25 +14,10 @@ final class ContainerTest extends TestCase
         $this->assertEquals($container->_store, []);
     }
 
-    public function testContructWithEntry(): void
-    {
-        $entry = ['test' => 'test1'];
-        $container = new \Layton\Container($entry);
-        $this->assertEquals($container->_store, $entry);
-    }
-
-    /**
-     * @expectedException \TypeError
-     */
-    public function testContructWithInvalidEntryType(): void
-    {
-        $entry = 'test';
-        $container = new \Layton\Container($entry);
-    }
-
     public function testOffsetExists()
     {
-        $container = new \Layton\Container(['test' => 1]);
+        $container = new \Layton\Container();
+        $container->offsetSet('test', 1);
         $result = $container->offsetExists('test');
         $this->assertTrue($result);
     }

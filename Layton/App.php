@@ -5,7 +5,6 @@ use Layton\Exception\NotFoundException;
 use Layton\Exception\MethodNotAllowedException;
 use Layton\Traits\RouteMapingTrait;
 use Layton\Services\RouteService;
-use Layton\Struct\AcceptStruct;
 use Layton\Services\DependentService;
 use Layton\Library\Standard\ArrayBucket;
 use Layton\Library\Http\Request;
@@ -48,16 +47,12 @@ class App
         }
     }
 
-    public function __construct(array $config = [])
+    public function __construct()
     {
         $this->container = new Container();
 
         $this->container->dependentService = new DependentService($this->container);
         $this->request = $this->container->dependentService->instance(Request::class);
-
-        $defaultConfig = new ArrayBucket();
-        $defaultConfig->fill($config);
-        $this->container->config = $defaultConfig;
 
         $this->container->routeService = function($c) {
             return new RouteService($c);
@@ -79,9 +74,9 @@ class App
      * 
      * @return Route
      */
-    public function map($method, $match, $callback)
+    public function map($methods, $match, $callback)
     {
-        return $this->routeService->attach($method, $match, $callback);
+        return $this->routeService->attach($methods, $match, $callback);
     }
 
     public function route($match, $methodsOrCallback)

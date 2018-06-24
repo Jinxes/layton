@@ -47,6 +47,16 @@ class DependentStruct
     }
 
     /**
+     * Get ReflectionClass from ReflectionClass
+     * 
+     * @return ReflectionClass
+     */
+    public function getReflection()
+    {
+        return $this->reflection;
+    }
+
+    /**
      * Get the Closure of method.
      * 
      * @param string $method

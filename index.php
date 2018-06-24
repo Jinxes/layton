@@ -38,9 +38,6 @@ class Midtest2
     }
 }
 
-/**
- * @Annotation
- */
 class Ctrl
 {
     public function test(Request $request, Response $response, $name)
@@ -55,7 +52,12 @@ class Controller
 {
     public function test()
     {
-        echo 'Hello World';
+        $arr = [1, 2, 3];
+        foreach ($arr as $key => $value) {
+            print_r($arr);
+            $value = &$arr[$key];
+            print_r($arr);echo '<br>';
+        }
     }
 }
 
